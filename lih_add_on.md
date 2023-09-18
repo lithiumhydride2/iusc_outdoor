@@ -7,3 +7,4 @@ sudo apt install ros-noetic-pcl-ros
 
 安装qgc:
 https://docs.qgroundcontrol.com/master/en/getting_started/download_and_install.html
+
