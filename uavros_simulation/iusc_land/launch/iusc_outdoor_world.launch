@@ -1,5 +1,5 @@
 <launch>
-  <arg name="world_file" default="$(find iusc_outdoor)/worlds/scene.world" /> <!-- 设置世界文件路径 -->
+  <arg name="world_file" default="$(find iusc_land)/worlds/scene.world" /> <!-- 设置世界文件路径 -->
   <!-- 暂无机器人 -->
   <!-- <param name="robot_description" command="$(find xacro)/xacro.py '$(find your_robot_description)/urdf/your_robot.urdf.xacro'" /> -->
   <node name="gazebo" pkg="gazebo_ros" type="gazebo" args="--verbose $(arg world_file)" output="screen"/>

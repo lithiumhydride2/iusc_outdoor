@@ -1,3 +1,3 @@
 
 
-catkin_make --source uavros_experiment/iusc_land --build build/iusc_land
+catkin_make --source uavros_simulation/iusc_land --build build/iusc_land

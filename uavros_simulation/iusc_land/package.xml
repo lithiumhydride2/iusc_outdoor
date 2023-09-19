@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <package format="2">
-  <name>uavros_wrzf_sitl</name>
+  <name>iusc_land</name>
   <version>0.0.0</version>
-  <description>The uavros_wrzf_sitl package</description>
+  <description>The iusc_land</description>
 
   <!-- One maintainer tag required, multiple allowed, one person per tag -->
   <!-- Example:  -->

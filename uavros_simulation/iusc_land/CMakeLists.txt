@@ -162,12 +162,12 @@ include_directories(
 
 
 
-add_executable(uav_controller_node 
-                  src/uav_controller_node.cpp
-                  src/uav_controller.cpp)
+# add_executable(uav_controller_node 
+#                   src/uav_controller_node.cpp
+#                   src/uav_controller.cpp)
 
 #add_dependencies(uav_controller_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-target_link_libraries(uav_controller_node ${catkin_LIBRARIES})
+# target_link_libraries(uav_controller_node ${catkin_LIBRARIES})
 
 
 ## Specify libraries to link a library or executable target against
