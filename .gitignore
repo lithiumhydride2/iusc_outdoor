@@ -3,6 +3,9 @@
 /devel
 /.catkin_workspace
 /.catkin_tools
+# sub
+*/build
+*/devel
 .vscode
 *.egg-info
 __pycache__

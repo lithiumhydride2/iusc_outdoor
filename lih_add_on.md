@@ -1,10 +1,29 @@
-安装以下未安装依赖：
+### 安装以下未安装依赖：
 ‘’‘
 sudo apt install ros-noetic-gazebo-ros-pkgs 
 sudo apt install ros-noetic-pcl-conversions
 sudo apt install ros-noetic-pcl-ros 
 ’‘’
 
-安装qgc:
+### 安装qgc:
 https://docs.qgroundcontrol.com/master/en/getting_started/download_and_install.html
 
+---
+更改环境变量
+### Add UAVros package path:
+echo "source ~/iusc_outdoor/devel/setup.bash" >> ~/.bashrc
+
+### Add px4 path:
+# if you use px4 version v1.13 or lower:
+echo "
+source ~/PX4-Autopilot/Tools/setup_gazebo.bash ~/PX4-Autopilot ~/PX4-Autopilot/build/px4_sitl_default
+export ROS_PACKAGE_PATH=\$ROS_PACKAGE_PATH:~/PX4-Autopilot
+export ROS_PACKAGE_PATH=\$ROS_PACKAGE_PATH:~/PX4-Autopilot/Tools/sitl_gazebo
+" >> ~/.bashrc
+
+# if you use px4 version v1.14:
+echo "
+source ~/PX4-Autopilot/Tools/simulation/gazebo-classic/setup_gazebo.bash ~/PX4-Autopilot ~/PX4-Autopilot/build/px4_sitl_default
+export ROS_PACKAGE_PATH=\$ROS_PACKAGE_PATH:~/PX4-Autopilot
+export ROS_PACKAGE_PATH=\$ROS_PACKAGE_PATH:~/PX4-Autopilot/Tools/simulation/gazebo-classic/sitl_gazebo-classic
+" >> ~/.bashrc
