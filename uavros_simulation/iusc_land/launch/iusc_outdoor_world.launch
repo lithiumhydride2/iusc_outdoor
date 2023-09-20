@@ -1,6 +1,16 @@
 <launch>
   <arg name="world_file" default="$(find iusc_land)/worlds/scene.world" /> <!-- 设置世界文件路径 -->
-  <!-- 暂无机器人 -->
+  <!-- gazebo configs -->
+  <arg name="gui" default="true"/>
+  <arg name="debug" default="false"/>
+  <arg name="verbose" default="false"/>
+  <arg name="paused" default="false"/>
   <!-- <param name="robot_description" command="$(find xacro)/xacro.py '$(find your_robot_description)/urdf/your_robot.urdf.xacro'" /> -->
-  <node name="gazebo" pkg="gazebo_ros" type="gazebo" args="--verbose $(arg world_file)" output="screen"/>
+  <include file="$(find gazebo_ros)/launch/empty_world.launch">
+    <arg name="world_name" default="$(arg world_file)"/>
+    <arg name="gui" default="$(arg gui)"/>
+    <arg name="debug" default="$(arg debug)"/>
+    <arg name="verbose" default="$(arg verbose)"/>
+    <arg name="paused" default="$(arg paused)"/>
+  </include>
 </launch>
