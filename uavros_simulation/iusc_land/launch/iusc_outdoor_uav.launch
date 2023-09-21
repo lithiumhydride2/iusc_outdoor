@@ -19,10 +19,10 @@
             <arg name="P" value="0"/>
             <arg name="Y" value="1.570796"/>
             <arg name="sdf" value="$(arg sdf)"/>
-            <arg name="ID" value="$=(arg i)"/>
+            <arg name="ID" value="$(arg i)"/>
             <arg name="camNamespace" value="uav$(arg i)"/>
-            <arg name="mavlink_udp_port" value="$(eval 14560 + arg('ID'))"/>
-            <arg name="mavlink_tcp_port" value="$(eval 4560 + arg('ID'))"/>
+            <arg name="mavlink_udp_port" value="$(eval 14560 + arg('i'))"/>
+            <arg name="mavlink_tcp_port" value="$(eval 4560 + arg('i'))"/>
         </include>
         <!-- 加载mavros -->
         <include file="$(find mavros)/launch/px4.launch">
