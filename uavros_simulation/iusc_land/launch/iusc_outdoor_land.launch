@@ -9,8 +9,6 @@
         <arg name="world_file" value="$(arg world_path)"/>
     </include>
 
-    <!-- 加载无人机参数 -->
-    <rosparam command="load" file="$(find iusc_land)/config/multi_uav_pos.yaml"/>
     <!-- 加载无人机 -->
     <include file="$(find iusc_land)/launch/iusc_outdoor_uav.launch">
         <arg name="n" value="$(arg num_uav)"/>

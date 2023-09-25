@@ -1,0 +1,9 @@
+#!/bin/sh
+
+ARGS="$@"
+
+. px4-alias.sh
+
+/bin/sh ${HOME}/.ros/build/px4_sitl_default/etc/init.d-posix/rcS "${ARGS}"
+
+param set COM_RCL_EXCEPT 7
