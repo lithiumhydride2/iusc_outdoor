@@ -50,12 +50,14 @@ class LandControl:
             request.longitude = home_position.geo.longitude
             request.altitude = 1.0  # TODO 首先设为1
             request.yaw = 1.570796
+
             self.call_service(
                 "mavros/cmd/takeoff",
                 service_class=CommandTOL,
                 requst=request,
                 uav_id=int(args.uav_id),
             )
+
             self.call_service(
                 "mavros/cmd/arming",
                 service_class=CommandBool,
@@ -86,7 +88,7 @@ class LandControl:
         services = [s for s in self.services if name in s]
         # 过滤 编号 服务
         if uav_id != -1:
-            services = [s for s in self.services if "/uav{}/".format(uav_id) in s]
+            services = [s for s in services if "/uav{}/".format(uav_id) in s]
 
         # call each service
         for service in services:
