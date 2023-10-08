@@ -24,7 +24,10 @@ class FakePromethus:
         self.last_local_pos.pose.position.y = 0
         self.last_local_pos.pose.position.z = 2
         self.state_sub = rospy.Subscriber(
-            template.format(self.uav_id), PoseStamped, self.state_callback
+            template.format(self.uav_id),
+            PoseStamped,
+            self.state_callback,
+            queue_size=10,
         )
         self.rate30 = rospy.Rate(30)
 

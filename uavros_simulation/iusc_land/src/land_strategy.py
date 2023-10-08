@@ -5,6 +5,7 @@ from mavros_msgs.msg import State
 from geometry_msgs.msg import PoseStamped
 from geographic_msgs.msg import GeoPoseStamped
 from colorama import Fore, Style
+from sensor_msgs.msg import NavSatFix
 
 
 class LandStrategy:
@@ -16,14 +17,21 @@ class LandStrategy:
         self.state = None
         self.local_pos = [0.0 for _ in range(3)]
         # this node is in uav1 namespace
-        self.state_sub = rospy.Subscriber("mavros/state", State, self.state_callback)
-        self.local_pos_sub = rospy.Subscriber(
-            "mavros/local_position/pose", PoseStamped, self.local_pos_cb
+        self.state_sub = rospy.Subscriber(
+            "mavros/state", State, self.state_callback, queue_size=10
         )
+        # self.global_pos_sub = rospy.Subscriber(
+        #     "mavros/global_position/global", NavSatFix, self.global_pos_cb
+        # )
+        self.local_pos_sub = rospy.Subscriber(
+            "mavros/local_position/pose", PoseStamped, self.local_pos_cb, queue_size=10
+        )
+        # self.global_pos_pub = rospy.Publisher(
+        #     "mavros/setpoint_position/global", GeoPoseStamped, queue_size=10
+        # )
         self.local_pos_pub = rospy.Publisher(
             "mavros/setpoint_position/local", PoseStamped, queue_size=10
         )
-
         # wait for px4
         rospy.wait_for_service("/uav{}/mavros/get_loggers".format(self.uav_id), 5)
         self.loginfo(" uav{} land strategy init done!".format(self.uav_id))
@@ -64,13 +72,20 @@ class LandStrategy:
         self.loginfo("approach all way point")
 
     def wait_for_approach(self, way_point):
-        error = [(self.local_pos[i] - way_point[i]) for i in range(len(way_point))]
-        while not all([abs(error[i]) < 0.1 for i in range(len(way_point))]):
+        # error = [self.local_pos[i] - way_point[i] for i in range(3)]
+        error = []
+        # TODO: BUG: index out of range
+        error[0] = self.local_pos[0] - way_point[0]
+        error[1] = self.local_pos[1] - way_point[1]
+        error[2] = self.local_pos[2] - way_point[2]
+        while not all([abs(i) < 0.2 for i in error]):
             self.loginfo(
-                " waitting for approaching way point with error : ",
-                self.local_pos,
-                way_point,
+                "uav{} waitting for approaching way point with error : ".format(
+                    self.uav_id
+                ),
+                error,
             )
+            self.loginfo(self.local_pos, way_point)
             self.rate1.sleep()
         self.loginfo(" uav{} approach one way point".format(self.uav_id))
 
@@ -94,8 +109,11 @@ class LandStrategy:
         self.local_pos[2] = float(msg.pose.position.z)
         # TODO : transform local_pos to world_pos
 
+    def way_point_to_global_axis(self, way_point: list):
+        pass
+
     def way_point_to_local_axis(self, way_point: list):
-        # TODO : 需修改，仅为了仿真使用
+        # TODO : transform way_point to world axis
         gap = [self.uav_id * 2.0, 0.0, 0.0]
         temp = [way_point[i] - gap[i] for i in range(len(way_point))]
         pass

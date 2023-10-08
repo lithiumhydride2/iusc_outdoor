@@ -18,7 +18,7 @@ class CustomTF:
         templete = "/uav{}/mavros/global_position/global"
         # broadcaster
         self.global_pos_sub = rospy.Subscriber(
-            templete.format(self.uav_id), NavSatFix, self.global_pos_cb
+            templete.format(self.uav_id), NavSatFix, self.global_pos_cb, queue_size=10
         )
         self.tf_broadcaster = tf2_ros.TransformBroadcaster()
         self.map_origin_global_pos = rospy.get_param(
