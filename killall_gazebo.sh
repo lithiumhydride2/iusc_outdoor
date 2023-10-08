@@ -2,4 +2,5 @@
 rosnode kill --all
 killall gzserver
 killall gzclient
-echo "killall gazebo"
+killall px4
+echo "killall gazebo"clear

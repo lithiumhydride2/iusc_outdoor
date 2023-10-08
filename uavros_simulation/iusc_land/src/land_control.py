@@ -4,6 +4,9 @@ import argparse
 import rospy
 
 from mavros_msgs.msg import HomePosition
+from geometry_msgs.msg import PoseStamped
+from geographic_msgs.msg import GeoPoseStamped
+from sensor_msgs.msg import NavSatFix
 
 # mavros service
 from mavros_msgs.srv import (
@@ -48,7 +51,7 @@ class LandControl:
             request = CommandTOLRequest()
             request.latitude = home_position.geo.latitude
             request.longitude = home_position.geo.longitude
-            request.altitude = 1.0  # TODO 首先设为1
+            request.altitude = 2.5  # TODO 首先设为最低高度 2.5m
             request.yaw = 1.570796
 
             self.call_service(
@@ -66,6 +69,23 @@ class LandControl:
             )
 
         elif args.command == "offboard":
+            # send some message to px4, if not your request will be rejucted
+            # 原地
+            pose = PoseStamped()
+            pose.pose.position.x = 0
+            pose.pose.position.y = 0
+            pose.pose.position.z = 2
+            template = "/uav{}/mavros/setpoint_position/local"
+
+            local_pub = rospy.Publisher(
+                template.format(args.uav_id), PoseStamped, queue_size=10
+            )
+
+            rate_20 = rospy.Rate(20.0)
+            for _ in range(10):
+                local_pub.publish(pose)
+                rate_20.sleep()
+
             self.call_service(
                 "mavros/set_mode",
                 service_class=SetMode,
@@ -105,6 +125,7 @@ class LandControl:
 
 def main():
     LandControl().run()
+    rospy.spin()
 
 
 if __name__ == "__main__":

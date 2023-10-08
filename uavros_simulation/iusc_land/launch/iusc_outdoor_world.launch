@@ -13,4 +13,6 @@
     <arg name="verbose" default="$(arg verbose)"/>
     <arg name="paused" default="$(arg paused)"/>
   </include>
+  <!-- 加载坐标变换 -->
+  <node pkg="iusc_land" type="custom_tf.py" name="custom_tf" output="screen"/>
 </launch>

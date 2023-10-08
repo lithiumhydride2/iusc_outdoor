@@ -29,3 +29,19 @@ export ROS_PACKAGE_PATH=\$ROS_PACKAGE_PATH:~/PX4-Autopilot/Tools/sitl_gazebo
 ```bash
 echo "alias iuscland='rosrun iusc_land land_control.py'" >> ~/.bashrc
 ```
+
+### USAGE
+启动相关 ros 节点:
+```
+roslaunch iusc_land iusc_outdoor_land.launch
+```
+
+修改px4 参数:
+```
+COM_RCL_EXCEPT set to 7 for every uav
+```
+
+控制无人机起飞：
+```
+iuscland 1 takeoff
+```
