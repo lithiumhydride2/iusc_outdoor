@@ -35,6 +35,8 @@
             <arg name="respawn_mavros" value="false"/>
         </include>
 
+        <!-- 加载坐标变换 -->
+        <node pkg="iusc_land" type="custom_tf.py" name="custom_tf" output="screen" args="$(arg i)"/>
         <!-- 加载策略控制器 -->
         <node pkg="iusc_land" type="land_strategy.py" name="land_strategy" output="screen" args="$(arg i)">
         </node>

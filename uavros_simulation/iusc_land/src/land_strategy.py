@@ -57,8 +57,9 @@ class LandStrategy:
         assert num_way_points > 1, "way points not enough"
 
         for way_point in self.way_points:
-            self.set_way_point(way_point)
-            self.wait_for_approach(way_point)
+            way_point_in_local_axis = self.way_point_to_local_axis(way_point=way_point)
+            self.set_way_point(way_point_in_local_axis)
+            self.wait_for_approach(way_point_in_local_axis)
 
         self.loginfo("approach all way point")
 
@@ -91,6 +92,14 @@ class LandStrategy:
         self.local_pos[0] = float(msg.pose.position.x)
         self.local_pos[1] = float(msg.pose.position.y)
         self.local_pos[2] = float(msg.pose.position.z)
+        # TODO : transform local_pos to world_pos
+
+    def way_point_to_local_axis(self, way_point: list):
+        # TODO : 需修改，仅为了仿真使用
+        gap = [self.uav_id * 2.0, 0.0, 0.0]
+        temp = [way_point[i] - gap[i] for i in range(len(way_point))]
+        pass
+        return temp
 
     def loginfo(self, *args, **kwargs):
         print(Fore.GREEN + "Land strategy : " + Style.RESET_ALL, *args, **kwargs)

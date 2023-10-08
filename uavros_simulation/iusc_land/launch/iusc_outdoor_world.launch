@@ -13,6 +13,7 @@
     <arg name="verbose" default="$(arg verbose)"/>
     <arg name="paused" default="$(arg paused)"/>
   </include>
-  <!-- 加载坐标变换 -->
-  <node pkg="iusc_land" type="custom_tf.py" name="custom_tf" output="screen"/>
+  <!-- 加载地图原点参数 -->
+  <rosparam command="load" file="$(find iusc_land)/config/map_origin_global_pos.yaml"/>
+
 </launch>

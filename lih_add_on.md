@@ -3,6 +3,7 @@
 sudo apt install ros-noetic-gazebo-ros-pkgs 
 sudo apt install ros-noetic-pcl-conversions
 sudo apt install ros-noetic-pcl-ros 
+pip install geographiclib
 ```
 
 ### 安装qgc:
