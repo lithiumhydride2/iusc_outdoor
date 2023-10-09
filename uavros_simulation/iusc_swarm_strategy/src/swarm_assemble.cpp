@@ -1,9 +1,9 @@
 #include <iostream>
 #include <ros/ros.h>
 #include <geometry_msgs/PoseStamped.h>
-#include "iusc_referee/MissionState.h"
-#include "iusc_referee/QuadPoseOther.h"
-#include "iusc_referee/StaticTargetOther.h"
+//#include "iusc_referee/MissionState.h"
+//#include "iusc_referee/QuadPoseOther.h"
+//#include "iusc_referee/StaticTargetOther.h"
 #include "iusc_swarm_strategy/iusc_swarm.h"
 #include <unistd.h>
 #include <std_msgs/UInt8.h>
@@ -14,7 +14,7 @@
 #include <unordered_map>
 // mission state
 
-int mission_state = 0;
+// int mission_state = 0;
 int uav_number = 999;
 std::array<float,3> drone_state = {0,0,0};
 std::array<float,3> target_pose = {0,0,0};
@@ -31,7 +31,7 @@ bool alle_to_take_off_sing = false;
 bool able_to_move_in_room = false;
 bool able_to_leave_room = false;
 
-void mission_state_cb(const iusc_referee::MissionState& tmp);
+// void mission_state_cb(const iusc_referee::MissionState& tmp);
 void quad_other_zone_sub_cb(const iusc_referee::QuadPoseOther &tmp);
 void quad_other_before_rect_sub_cb(const iusc_swarm_strategy::iusc_swarm &tmp);
 void quad_other_cross_rect_sub_cb(const iusc_swarm_strategy::iusc_swarm &tmp);
@@ -63,7 +63,7 @@ int main(int argc,char **argv){
     ros::Rate rate_1(1);
     
     // wait for armcommand 
-    nh.setParam("/finished_stage",NONE);
+ /*   nh.setParam("/finished_stage",NONE);
     
     while (ros::ok() && !(mission_state == TOARM))
     {
@@ -75,7 +75,7 @@ int main(int argc,char **argv){
     std::cout << "----------- receive arm command !!! --------" << std::endl;
     // shutdown this subscriber
     mission_state_sub.shutdown();
-    
+*/
     // 在此处进行起飞顺序的批准
     // 起飞顺序
     // when_to_set_up(nh);
@@ -142,7 +142,7 @@ int main(int argc,char **argv){
     // 对于本无人机到达了几号航点需要进行获取，topic名后续确定
     ros::Subscriber target_number_sub = nh.subscribe("/TargetNumber", 10, target_number_cb);
     double time_wait = .0;
-    while(ros::ok() && !(target>=0 && target<=5)){
+    while(ros::ok() && !(target>=1 && target<=6)){
         std::cout << " ------- wait target number , use time: "<< time_wait << " --------" << std::endl;
         rate_1.sleep();
         ros::spinOnce();
@@ -151,7 +151,7 @@ int main(int argc,char **argv){
     std::cout << " ------- ready to cross rect --------" << std::endl;
     //
     if(nh.getParam("/swarm_assemble/rect_target_pos",rect_pose_all)){
-        if(uav_number >=0 && uav_number <=5){
+        if(uav_number >=1 && uav_number <=6){
             rect_pose = rect_pose_all[target_number];
             nh.setParam("/target_pos_x" , rect_pose["x"]);
             nh.setParam("/target_pos_y" , rect_pose["y"]);

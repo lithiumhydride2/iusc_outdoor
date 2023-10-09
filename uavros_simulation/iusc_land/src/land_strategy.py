@@ -114,7 +114,14 @@ class LandStrategy:
     def way_point_to_local_axis(self, way_point: list):
         # TODO : transform way_point to world axis
         gap = [self.uav_id * 2.0, 0.0, 0.0]
-        temp = [way_point[i] - gap[i] for i in range(len(way_point))]
+        gap = {}
+        gap[1] = [30 - 22.5, -1.0, 0.0]
+        gap[2] = [30 - 15.0, -1.0, 0.0]
+        gap[3] = [30 - 7.5 - 1.0, 0.0]
+        gap[4] = [30 - 22.5, -3.0, 0.0]
+        gap[5] = [30 - 15.0, -3.0, 0.0]
+        gap[6] = [30 - 7.5, -3.0, 0.0]
+        temp = [way_point[i] - gap[self.uav_id][i] for i in range(len(way_point))]
         pass
         return temp
 
@@ -127,8 +134,6 @@ class LandStrategy:
 
 def main():
     # try:
-    # wait for sequence 2
-    rospy.wait_for_message(sys.argv[
     land_strategy_node = LandStrategy()
     rate10 = rospy.Rate(10.0)
     try:

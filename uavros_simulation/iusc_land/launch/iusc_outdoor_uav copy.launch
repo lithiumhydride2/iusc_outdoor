@@ -1,0 +1,234 @@
+<launch>
+    <!-- 默认参数 -->
+    <arg name="n" default="1"/>
+    <arg name="i" default="1"/>  
+    <!-- 无人机描述文件 -->
+    <arg name="sdf" default="$(find uavros_gazebo)/models/iris_usb_camera_down/iris_usb_camera_down.sdf"/>
+    <arg name="fcu_param1" value="$(eval 14540 + arg('i'))"/>
+    <arg name="fcu_param2" value="$(eval 14580 + arg('i'))"/>
+    <arg name="fcu_url" value="udp://:$(arg fcu_param1)@localhost:$(arg fcu_param2)"/>
+    <arg name="init_x" default="$(eval 2 * arg('i'))"/>
+    <arg name="init_y" default="0"/>
+    <!-- 六架无人机初始位置 -->
+    <arg name="init_x_1" default="$(eval 30 - 22.5)"/>
+    <arg name="init_y_1" default="-1.0"/>
+    <arg name="init_x_2" default="$(eval 30 - 15.0)"/>
+    <arg name="init_y_2" default="-1.0"/>
+    <arg name="init_x_3" default="$(eval 30 - 7.5)"/>
+    <arg name="init_y_3" default="-1.0"/>
+    <arg name="init_x_4" default="$(eval 30 - 22.5)"/>
+    <arg name="init_y_4" default="-3.0"/>
+    <arg name="init_x_5" default="$(eval 30 - 15.0)"/>
+    <arg name="init_y_5" default="-3.0"/>
+    <arg name="init_x_6" default="$(eval 30 - 7.5)"/>
+    <arg name="init_y_6" default="-3.0"/>
+
+    <!-- 加载航点 -->
+    <rosparam command="load" file="$(find iusc_land)/config/way_point.yaml"/>
+
+    <!-- 加载无人机1 -->
+    <group ns = "uav1">
+        <arg name="uav_id_1" value="1"/>  
+        <!-- px4 sitl and vehicle -->
+        <include file="$(find uavros_gazebo)/launch/single_iris_usbcam_down.launch">
+            <arg name="x" value="$(arg init_x_1)"/>
+            <arg name="y" value="$(arg init_y_1)"/>
+            <arg name="z" value="0"/>
+            <arg name="R" value="0"/>
+            <arg name="P" value="0"/>
+            <arg name="Y" value="1.570796"/>
+            <arg name="sdf" value="$(arg sdf)"/>
+            <arg name="ID" value="$(arg uav_id_1)"/>
+            <arg name="camNamespace" value="uav$(arg uav_id_1)"/>
+            <arg name="mavlink_udp_port" value="$(eval 14560 + arg('uav_id_1'))"/>
+            <arg name="mavlink_tcp_port" value="$(eval 4560 + arg('uav_id_1'))"/>
+        </include>
+        <!-- 加载mavros -->
+        <include file="$(find mavros)/launch/px4.launch">
+            <arg name="fcu_url" value="$(arg fcu_url)"/>
+            <arg name="gcs_url" value=""/>
+            <arg name="tgt_system" value="$(eval 1 + arg('uav_id_1'))"/>
+            <arg name="tgt_component" value="1"/>
+            <arg name="respawn_mavros" value="false"/>
+        </include>
+        <!-- 加载坐标变换 -->
+        <node pkg="iusc_land" type="custom_tf.py" name="custom_tf" output="screen" args="$(arg uav_id_1)"/>
+        <node pkg="iusc_node_sequence" type="node_sequence.py" name="iusc_node_sequence" output="screen" args="$(arg uav_id_1)"/>
+        <!-- 加载策略控制器 -->
+        <node pkg="iusc_land" type="land_strategy.py" name="land_strategy" output="screen" args="$(arg uav_id_1)">
+        </node>
+        <node pkg="iusc_land" type="fake_promethus.py" name="fake_promethus" output="screen" args="$(arg uav_id_1)"/>
+    </group>
+
+    加载无人机2
+    <group ns = "uav2">
+        <arg name="uav_id_2" value="2"/>  
+        <!-- px4 sitl and vehicle -->
+        <include file="$(find uavros_gazebo)/launch/single_iris_usbcam_down.launch">
+            <arg name="x" value="$(arg init_x_2)"/>
+            <arg name="y" value="$(arg init_y_2)"/>
+            <arg name="z" value="0"/>
+            <arg name="R" value="0"/>
+            <arg name="P" value="0"/>
+            <arg name="Y" value="1.570796"/>
+            <arg name="sdf" value="$(arg sdf)"/>
+            <arg name="ID" value="$(arg uav_id_2)"/>
+            <arg name="camNamespace" value="uav$(arg uav_id_2)"/>
+            <arg name="mavlink_udp_port" value="$(eval 14560 + arg('uav_id_2'))"/>
+            <arg name="mavlink_tcp_port" value="$(eval 4560 + arg('uav_id_2'))"/>
+        </include>
+        <!-- 加载mavros -->
+        <include file="$(find mavros)/launch/px4.launch">
+            <arg name="fcu_url" value="$(arg fcu_url)"/>
+            <arg name="gcs_url" value=""/>
+            <arg name="tgt_system" value="$(eval 1 + arg('uav_id_2'))"/>
+            <arg name="tgt_component" value="1"/>
+            <arg name="respawn_mavros" value="false"/>
+        </include>
+        <!-- 加载坐标变换 -->
+        <node pkg="iusc_land" type="custom_tf.py" name="custom_tf" output="screen" args="$(arg uav_id_2)"/>
+        <node pkg="iusc_node_sequence" type="node_sequence.py" name="iusc_node_sequence" output="screen" args="$(arg uav_id_2)"/>
+        <!-- 加载策略控制器 -->
+        <node pkg="iusc_land" type="land_strategy.py" name="land_strategy" output="screen" args="$(arg uav_id_2)">
+        </node>
+        <node pkg="iusc_land" type="fake_promethus.py" name="fake_promethus" output="screen" args="$(arg uav_id_2)"/>
+    </group>
+
+<!-- 加载无人机3 -->
+    <group ns = "uav3">
+        <arg name="uav_id_3" value="3"/>  
+        <!-- px4 sitl and vehicle -->
+        <include file="$(find uavros_gazebo)/launch/single_iris_usbcam_down.launch">
+            <arg name="x" value="$(arg init_x_3)"/>
+            <arg name="y" value="$(arg init_y_3)"/>
+            <arg name="z" value="0"/>
+            <arg name="R" value="0"/>
+            <arg name="P" value="0"/>
+            <arg name="Y" value="1.570796"/>
+            <arg name="sdf" value="$(arg sdf)"/>
+            <arg name="ID" value="$(arg uav_id_3)"/>
+            <arg name="camNamespace" value="uav$(arg uav_id_3)"/>
+            <arg name="mavlink_udp_port" value="$(eval 14560 + arg('uav_id_3'))"/>
+            <arg name="mavlink_tcp_port" value="$(eval 4560 + arg('uav_id_3'))"/>
+        </include>
+        <!-- 加载mavros -->
+        <include file="$(find mavros)/launch/px4.launch">
+            <arg name="fcu_url" value="$(arg fcu_url)"/>
+            <arg name="gcs_url" value=""/>
+            <arg name="tgt_system" value="$(eval 1 + arg('i'))"/>
+            <arg name="tgt_component" value="1"/>
+            <arg name="respawn_mavros" value="false"/>
+        </include>
+        <!-- 加载坐标变换 -->
+        <node pkg="iusc_land" type="custom_tf.py" name="custom_tf" output="screen" args="$(arg uav_id_3)"/>
+        <node pkg="iusc_node_sequence" type="node_sequence.py" name="iusc_node_sequence" output="screen" args="$(arg uav_id_3)"/>
+        <!-- 加载策略控制器 -->
+        <node pkg="iusc_land" type="land_strategy.py" name="land_strategy" output="screen" args="$(arg uav_id_3)">
+        </node>
+        <node pkg="iusc_land" type="fake_promethus.py" name="fake_promethus" output="screen" args="$(arg uav_id_3)"/>
+    </group>
+
+<!-- 加载无人机4 -->
+    <group ns = "uav4">
+        <arg name="uav_id_4" value="4"/>  
+        <!-- px4 sitl and vehicle -->
+        <include file="$(find uavros_gazebo)/launch/single_iris_usbcam_down.launch">
+            <arg name="x" value="$(arg init_x_4)"/>
+            <arg name="y" value="$(arg init_y_4)"/>
+            <arg name="z" value="0"/>
+            <arg name="R" value="0"/>
+            <arg name="P" value="0"/>
+            <arg name="Y" value="1.570796"/>
+            <arg name="sdf" value="$(arg sdf)"/>
+            <arg name="ID" value="$(arg uav_id_4)"/>
+            <arg name="camNamespace" value="uav$(arg uav_id_4)"/>
+            <arg name="mavlink_udp_port" value="$(eval 14560 + arg('uav_id_4'))"/>
+            <arg name="mavlink_tcp_port" value="$(eval 4560 + arg('uav_id_4'))"/>
+        </include>
+        <!-- 加载mavros -->
+        <include file="$(find mavros)/launch/px4.launch">
+            <arg name="fcu_url" value="$(arg fcu_url)"/>
+            <arg name="gcs_url" value=""/>
+            <arg name="tgt_system" value="$(eval 1 + arg('uav_id_4'))"/>
+            <arg name="tgt_component" value="1"/>
+            <arg name="respawn_mavros" value="false"/>
+        </include>
+        <!-- 加载坐标变换 -->
+        <node pkg="iusc_land" type="custom_tf.py" name="custom_tf" output="screen" args="$(arg uav_id_4)"/>
+        <node pkg="iusc_node_sequence" type="node_sequence.py" name="iusc_node_sequence" output="screen" args="$(arg uav_id_4)"/>
+        <!-- 加载策略控制器 -->
+        <node pkg="iusc_land" type="land_strategy.py" name="land_strategy" output="screen" args="$(arg uav_id_4)">
+        </node>
+        <node pkg="iusc_land" type="fake_promethus.py" name="fake_promethus" output="screen" args="$(arg uav_id_4)"/>
+    </group>
+
+<!-- 加载无人机1 -->
+    <group ns = "uav5">
+        <arg name="uav_id_5" value="5"/>  
+        <!-- px4 sitl and vehicle -->
+        <include file="$(find uavros_gazebo)/launch/single_iris_usbcam_down.launch">
+            <arg name="x" value="$(arg init_x_5)"/>
+            <arg name="y" value="$(arg init_y_5)"/>
+            <arg name="z" value="0"/>
+            <arg name="R" value="0"/>
+            <arg name="P" value="0"/>
+            <arg name="Y" value="1.570796"/>
+            <arg name="sdf" value="$(arg sdf)"/>
+            <arg name="ID" value="$(arg uav_id_5)"/>
+            <arg name="camNamespace" value="uav$(arg uav_id_5)"/>
+            <arg name="mavlink_udp_port" value="$(eval 14560 + arg('uav_id_5'))"/>
+            <arg name="mavlink_tcp_port" value="$(eval 4560 + arg('uav_id_5'))"/>
+        </include>
+        <!-- 加载mavros -->
+        <include file="$(find mavros)/launch/px4.launch">
+            <arg name="fcu_url" value="$(arg fcu_url)"/>
+            <arg name="gcs_url" value=""/>
+            <arg name="tgt_system" value="$(eval 1 + arg('uav_id_5'))"/>
+            <arg name="tgt_component" value="1"/>
+            <arg name="respawn_mavros" value="false"/>
+        </include>
+        <!-- 加载坐标变换 -->
+        <node pkg="iusc_land" type="custom_tf.py" name="custom_tf" output="screen" args="$(arg uav_id_5)"/>
+        <node pkg="iusc_node_sequence" type="node_sequence.py" name="iusc_node_sequence" output="screen" args="$(arg uav_id_5)"/>
+        <!-- 加载策略控制器 -->
+        <node pkg="iusc_land" type="land_strategy.py" name="land_strategy" output="screen" args="$(arg uav_id_5)">
+        </node>
+        <node pkg="iusc_land" type="fake_promethus.py" name="fake_promethus" output="screen" args="$(arg uav_id_5)"/>
+    </group>
+
+<!-- 加载无人机6 -->
+    <group ns = "uav6">
+        <arg name="uav_id_6" value="6"/>  
+        <!-- px4 sitl and vehicle -->
+        <include file="$(find uavros_gazebo)/launch/single_iris_usbcam_down.launch">
+            <arg name="x" value="$(arg init_x_6)"/>
+            <arg name="y" value="$(arg init_y_6)"/>
+            <arg name="z" value="0"/>
+            <arg name="R" value="0"/>
+            <arg name="P" value="0"/>
+            <arg name="Y" value="1.570796"/>
+            <arg name="sdf" value="$(arg sdf)"/>
+            <arg name="ID" value="$(arg uav_id_6)"/>
+            <arg name="camNamespace" value="uav$(arg uav_id_6)"/>
+            <arg name="mavlink_udp_port" value="$(eval 14560 + arg('uav_id_6'))"/>
+            <arg name="mavlink_tcp_port" value="$(eval 4560 + arg('uav_id_6'))"/>
+        </include>
+        <!-- 加载mavros -->
+        <include file="$(find mavros)/launch/px4.launch">
+            <arg name="fcu_url" value="$(arg fcu_url)"/>
+            <arg name="gcs_url" value=""/>
+            <arg name="tgt_system" value="$(eval 1 + arg('uav_id_6'))"/>
+            <arg name="tgt_component" value="1"/>
+            <arg name="respawn_mavros" value="false"/>
+        </include>
+        <!-- 加载坐标变换 -->
+        <node pkg="iusc_land" type="custom_tf.py" name="custom_tf" output="screen" args="$(arg uav_id_6)"/>
+        <node pkg="iusc_node_sequence" type="node_sequence.py" name="iusc_node_sequence" output="screen" args="$(arg uav_id_6)"/>
+        <!-- 加载策略控制器 -->
+        <node pkg="iusc_land" type="land_strategy.py" name="land_strategy" output="screen" args="$(arg uav_id_6)">
+        </node>
+        <node pkg="iusc_land" type="fake_promethus.py" name="fake_promethus" output="screen" args="$(arg uav_id_6)"/>
+    </group>
+
+   
+</launch>
