@@ -1,0 +1,18 @@
+/opt/clion/CLion-2022.3.2/clion-2022.3.2/bin/cmake/linux/x64/bin/cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_MAKE_PROGRAM=/opt/clion/CLion-2022.3.2/clion-2022.3.2/bin/ninja/linux/x64/ninja -G Ninja -S /media/lih/48fc8f75-dc2b-4a68-9673-c4cc26f9d5db/home/amov/amovlab_ws/src/iusc_swarm_strategy -B /media/lih/48fc8f75-dc2b-4a68-9673-c4cc26f9d5db/home/amov/amovlab_ws/src/iusc_swarm_strategy/cmake-build-debug
+-- Using CATKIN_DEVEL_PREFIX: /media/lih/48fc8f75-dc2b-4a68-9673-c4cc26f9d5db/home/amov/amovlab_ws/src/iusc_swarm_strategy/cmake-build-debug/devel
+-- Using CMAKE_PREFIX_PATH: /opt/ros/noetic;/opt/ros/noetic;/home/lih/桌面/ros_learn/demo_03_msg_python/devel;/home/lih/桌面/ros_learn/test_02_ws/devel
+-- This workspace overlays: /opt/ros/noetic;/home/lih/桌面/ros_learn/demo_03_msg_python/devel;/home/lih/桌面/ros_learn/test_02_ws/devel
+-- Using PYTHON_EXECUTABLE: /home/lih/miniconda3/bin/python3
+-- Using Debian Python package layout
+-- Could NOT find PY_em (missing: PY_EM) 
+CMake Error at /opt/ros/noetic/share/catkin/cmake/empy.cmake:30 (message):
+  Unable to find either executable 'empy' or Python module 'em'...  try
+  installing the package 'python3-empy'
+Call Stack (most recent call first):
+  /opt/ros/noetic/share/catkin/cmake/all.cmake:164 (include)
+  /opt/ros/noetic/share/catkin/cmake/catkinConfig.cmake:20 (include)
+  CMakeLists.txt:10 (find_package)
+
+
+-- Configuring incomplete, errors occurred!
+See also "/media/lih/48fc8f75-dc2b-4a68-9673-c4cc26f9d5db/home/amov/amovlab_ws/src/iusc_swarm_strategy/cmake-build-debug/CMakeFiles/CMakeOutput.log".
