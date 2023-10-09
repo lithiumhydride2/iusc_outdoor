@@ -127,6 +127,8 @@ class LandStrategy:
 
 def main():
     # try:
+    # wait for sequence 2
+    rospy.wait_for_message(sys.argv[
     land_strategy_node = LandStrategy()
     rate10 = rospy.Rate(10.0)
     try:
