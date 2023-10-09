@@ -30,6 +30,7 @@ if __name__ == "__main__":
     assert len(sys.argv) >= 2, "argument count not enough"
     uav_id = sys.argv[1]
     subprocess.Popen(["rosrun", "node_sequence", "node_simulator1.py"])
+    subprocess.Popen(["rosrun", "node_sequence", "node_simulator2.py"])
     try:
         node_sequence()
     except rospy.ROSInterruptException:
