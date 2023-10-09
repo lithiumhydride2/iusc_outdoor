@@ -73,19 +73,18 @@ class LandStrategy:
 
     def wait_for_approach(self, way_point):
         # error = [self.local_pos[i] - way_point[i] for i in range(3)]
-        error = []
-        # TODO: BUG: index out of range
-        error[0] = self.local_pos[0] - way_point[0]
-        error[1] = self.local_pos[1] - way_point[1]
-        error[2] = self.local_pos[2] - way_point[2]
+        error = [1 for _ in range(3)]
+        self.loginfo(error, self.local_pos, way_point)
+
         while not all([abs(i) < 0.2 for i in error]):
+            error = [self.local_pos[i] - way_point[i] for i in range(len(way_point))]
             self.loginfo(
                 "uav{} waitting for approaching way point with error : ".format(
                     self.uav_id
                 ),
                 error,
             )
-            self.loginfo(self.local_pos, way_point)
+            # self.loginfo(self.local_pos, way_point)
             self.rate1.sleep()
         self.loginfo(" uav{} approach one way point".format(self.uav_id))
 
@@ -103,10 +102,10 @@ class LandStrategy:
         # self.loginfo("current uav{} state : {}".format(self.uav_id, self.state))
 
     def local_pos_cb(self, msg):
+        self.local_pos[0] = msg.pose.position.x
+        self.local_pos[1] = msg.pose.position.y
+        self.local_pos[2] = msg.pose.position.z
         self.rate1.sleep()
-        self.local_pos[0] = float(msg.pose.position.x)
-        self.local_pos[1] = float(msg.pose.position.y)
-        self.local_pos[2] = float(msg.pose.position.z)
         # TODO : transform local_pos to world_pos
 
     def way_point_to_global_axis(self, way_point: list):
