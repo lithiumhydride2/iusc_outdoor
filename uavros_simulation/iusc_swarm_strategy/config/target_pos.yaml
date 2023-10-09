@@ -147,7 +147,7 @@ one_target_pos_5:
   y: 15.0
   z: 1.0
 
-ut_of_room_pos:
+out_of_room_pos:
 - id: 0
   x: 66.0
   y: 15.0
