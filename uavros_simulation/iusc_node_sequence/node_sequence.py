@@ -29,7 +29,9 @@ if __name__ == "__main__":
     # need to get uav number here
     assert len(sys.argv) >= 2, "argument count not enough"
     uav_id = sys.argv[1]
-    subprocess.Popen(["rosrun", "node_sequence", "node_simulator1.py"])
+
+    # stage1
+    subprocess.Popen(["roslaunch", "iusc_maze", "iusc_maze_swarm.launch"])
     try:
         node_sequence()
     except rospy.ROSInterruptException:
