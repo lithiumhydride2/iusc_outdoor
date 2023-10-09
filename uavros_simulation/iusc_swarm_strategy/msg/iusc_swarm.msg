@@ -1,0 +1,6 @@
+uint8 uav_id
+uint8 target_number
+bool able_to_take_off
+bool before_rect_success
+bool cross_rect_success
+bool room_arrange_success

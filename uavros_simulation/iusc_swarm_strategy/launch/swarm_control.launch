@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<launch>
+    <node pkg="iusc_swarm_strategy" type="swarm_assemble" name="swarm_assemble" output="screen">
+        <rosparam command="load" file="$(find iusc_swarm_strategy)/config/target_pos.yaml" />
+    </node>
+    <!-- flight management-->
+    <!-- include file="$(find flight_management)/launch/flight_management.launch"/-->
+    <!-- swarm ros bridge -->
+    <!-- include file="$(find swarm_ros_bridge)/launch/latency_test.launch" / -->
+</launch>
