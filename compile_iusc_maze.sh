@@ -1,0 +1,1 @@
+catkin_make --source uavros_simulation/iusc_maze --build build/iusc_maze
