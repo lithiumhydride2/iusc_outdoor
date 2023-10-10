@@ -6,6 +6,7 @@ from geometry_msgs.msg import PoseStamped
 from geographic_msgs.msg import GeoPoseStamped
 from colorama import Fore, Style
 from sensor_msgs.msg import NavSatFix
+from iusc_maze.srv import map2localRequest, map2localResponse, map2local
 
 
 class LandStrategy:
@@ -32,6 +33,12 @@ class LandStrategy:
         self.local_pos_pub = rospy.Publisher(
             "mavros/setpoint_position/local", PoseStamped, queue_size=10
         )
+        # wait for map2local service
+        templete = "/uav{}/map2local_server"
+        self.map2local_client = rospy.ServiceProxy(
+            templete.format(self.uav_id), map2local
+        )
+        self.map2local_client.wait_for_service()
         # wait for px4
         rospy.wait_for_service("/uav{}/mavros/get_loggers".format(self.uav_id), 5)
         self.loginfo(" uav{} land strategy init done!".format(self.uav_id))
@@ -65,7 +72,7 @@ class LandStrategy:
         assert num_way_points > 1, "way points not enough"
 
         for way_point in self.way_points:
-            way_point_in_local_axis = self.way_point_to_local_axis(way_point=way_point)
+            way_point_in_local_axis = self.way_point_to_local_axis(way_point)
             self.set_way_point(way_point_in_local_axis)
             self.wait_for_approach(way_point_in_local_axis)
 
@@ -108,22 +115,29 @@ class LandStrategy:
         self.rate1.sleep()
         # TODO : transform local_pos to world_pos
 
+    def way_point_to_local_axis(self, way_point):
+        request = map2localRequest()
+        request.x_map = way_point[0]
+        request.y_map = way_point[1]
+        response: map2localResponse = self.map2local_client.call(request)
+        return [response.x_local, response.y_local, way_point[2]]
+
     def way_point_to_global_axis(self, way_point: list):
         pass
 
-    def way_point_to_local_axis(self, way_point: list):
-        # TODO : transform way_point to world axis
-        gap = [self.uav_id * 2.0, 0.0, 0.0]
-        gap = {}
-        gap[1] = [30 - 22.5, -1.0, 0.0]
-        gap[2] = [30 - 15.0, -1.0, 0.0]
-        gap[3] = [30 - 7.5 - 1.0, 0.0]
-        gap[4] = [30 - 22.5, -3.0, 0.0]
-        gap[5] = [30 - 15.0, -3.0, 0.0]
-        gap[6] = [30 - 7.5, -3.0, 0.0]
-        temp = [way_point[i] - gap[self.uav_id][i] for i in range(len(way_point))]
-        pass
-        return temp
+    # def way_point_to_local_axis(self, way_point: list):
+    #     # TODO : transform way_point to world axis
+    #     gap = [self.uav_id * 2.0, 0.0, 0.0]
+    #     gap = {}
+    #     gap[1] = [30 - 22.5, -1.0, 0.0]
+    #     gap[2] = [30 - 15.0, -1.0, 0.0]
+    #     gap[3] = [30 - 7.5 - 1.0, 0.0]
+    #     gap[4] = [30 - 22.5, -3.0, 0.0]
+    #     gap[5] = [30 - 15.0, -3.0, 0.0]
+    #     gap[6] = [30 - 7.5, -3.0, 0.0]
+    #     temp = [way_point[i] - gap[self.uav_id][i] for i in range(len(way_point))]
+    #     pass
+    #     return temp
 
     def loginfo(self, *args, **kwargs):
         print(Fore.GREEN + "Land strategy : " + Style.RESET_ALL, *args, **kwargs)

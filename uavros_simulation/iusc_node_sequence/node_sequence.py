@@ -29,7 +29,8 @@ if __name__ == "__main__":
     # need to get uav number here
     assert len(sys.argv) >= 2, "argument count not enough"
     uav_id = sys.argv[1]
-
+    #  直接开始 stage3
+    subprocess.Popen(["roslaunch", "iusc_land", "iusc_outdoor_stage3.launch", "i:=1"])
     # stage1
     subprocess.Popen(["roslaunch", "iusc_maze", "iusc_maze_swarm.launch"])
     try:
