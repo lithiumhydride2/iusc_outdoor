@@ -1,3 +1,0 @@
-[submodule "uavros_simulation/iusc_maze"]
-	path = uavros_simulation/iusc_maze
-	url = https://github.com/lithiumhydride2/iusc_maze.git
