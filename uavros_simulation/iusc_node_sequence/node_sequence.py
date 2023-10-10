@@ -32,7 +32,7 @@ if __name__ == "__main__":
     #  直接开始 stage3
     subprocess.Popen(["roslaunch", "iusc_land", "iusc_outdoor_stage3.launch", "i:=1"])
     # stage1
-    subprocess.Popen(["roslaunch", "iusc_maze", "iusc_maze_swarm.launch"])
+    # subprocess.Popen(["roslaunch", "iusc_maze", "iusc_maze_swarm.launch"])
     try:
         node_sequence()
     except rospy.ROSInterruptException:

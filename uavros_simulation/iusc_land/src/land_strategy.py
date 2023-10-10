@@ -15,8 +15,10 @@ class LandStrategy:
         args = rospy.myargv(argv=sys.argv)
         assert len(args) >= 2, "args not enough"
         self.uav_id = int(args[1])
-        self.state = None
+        self.state: State = None
         self.local_pos = [0.0 for _ in range(3)]
+        self.rate30 = rospy.Rate(30.0)
+        self.rate1 = rospy.Rate(1.0)
         # this node is in uav1 namespace
         self.state_sub = rospy.Subscriber(
             "mavros/state", State, self.state_callback, queue_size=10
@@ -42,14 +44,14 @@ class LandStrategy:
         # wait for px4
         rospy.wait_for_service("/uav{}/mavros/get_loggers".format(self.uav_id), 5)
         self.loginfo(" uav{} land strategy init done!".format(self.uav_id))
-        self.rate30 = rospy.Rate(30.0)
-        self.rate1 = rospy.Rate(1.0)
 
     def run(self):
         # wait for offboard mode
+        rospy.wait_for_message("mavros/state", State)
         while not rospy.is_shutdown():
-            # self.loginfo(" uav{} wait for OFFBOARD".format(self.uav_id))
-            if self.state is not None and self.state.mode == "OFFBOARD":
+            self.rate1.sleep()
+            rospy.loginfo(" uav{} wait for OFFBOARD".format(self.uav_id))
+            if self.state.mode == "OFFBOARD":
                 rospy.loginfo_once(
                     Fore.GREEN
                     + "uav{} is in offboard mode".format(self.uav_id)
@@ -60,6 +62,9 @@ class LandStrategy:
         if self.uav_id == 1:
             # track way point
             self.follow_way_point()
+            # 获取降落队形
+            self.land_shape_pub = rospy.Publisher("land_shape",data_class=,latch=True)
+            
             pass
         elif self.uav_id > 1 and self.uav_id <= 6:
             self.follow_way_point()
@@ -81,7 +86,7 @@ class LandStrategy:
     def wait_for_approach(self, way_point):
         # error = [self.local_pos[i] - way_point[i] for i in range(3)]
         error = [1 for _ in range(3)]
-        self.loginfo(error, self.local_pos, way_point)
+        # self.loginfo(error, self.local_pos, way_point)
 
         while not all([abs(i) < 0.2 for i in error]):
             error = [self.local_pos[i] - way_point[i] for i in range(len(way_point))]
@@ -149,11 +154,9 @@ class LandStrategy:
 def main():
     # try:
     land_strategy_node = LandStrategy()
-    rate10 = rospy.Rate(10.0)
     try:
-        while not rospy.is_shutdown():
-            land_strategy_node.run()
-            rate10.sleep()
+        land_strategy_node.run()
+        rospy.spin()
     except rospy.ROSInterruptException as e:
         rospy.logerr(e)
     # except rospy.ROSInterruptException as e:
