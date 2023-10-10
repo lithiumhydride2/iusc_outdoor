@@ -33,7 +33,6 @@ bool able_to_move_in_room = false;
 bool able_to_leave_room = false;
 
 // void mission_state_cb(const iusc_referee::MissionState& tmp);
-<<<<<<< HEAD
 /*void target_number_sub_cb(std_msgs::Int32 &tmp){
     target_number = tmp;
 }
@@ -104,15 +103,6 @@ void drone_state_cb(const geometry_msgs::PoseStamped &tmp){
     drone_state[2] = tmp.pose.position.z ;
 }
 
-=======
-void quad_other_zone_sub_cb(const iusc_referee::QuadPoseOther &tmp);
-void quad_other_before_rect_sub_cb(const iusc_swarm_strategy::iusc_swarm &tmp);
-void quad_other_cross_rect_sub_cb(const iusc_swarm_strategy::iusc_swarm &tmp);
-void quad_other_room_arrange_sub_cb(const iusc_swarm_strategy::iusc_swarm &tmp);
-void quad_other_room_arrived_sub_cb(const iusc_swarm_strategy::iusc_swarm &tmp);
-void drone_state_cb(const prometheus_msgs::DroneState &tmp);
-void when_to_set_up(ros::NodeHandle &nh);
->>>>>>> d660a6252dda2ca4f9d5cd7be38c548df89a448f
 void impossible_mission(ros::NodeHandle &nh, ros::Publisher& goal_pose_pub);
 
 
@@ -131,7 +121,6 @@ void impossible_mission(ros::NodeHandle& nh,ros::Publisher& goal_pose_pub){
 
     //ros::Subscriber drone_state_sub = nh.subscribe("/prometheus/drone_state",10,drone_state_cb);
     
-<<<<<<< HEAD
     switch (target_number)
     {
     case 2:
@@ -139,28 +128,6 @@ void impossible_mission(ros::NodeHandle& nh,ros::Publisher& goal_pose_pub){
         if(nh.getParam("/swarm_assemble/one_target_pos_2",one_pose_all)){
         } else ROS_ERROR("param set error");
         for(int i = 0 ;i < one_pose_all.size() ; i++){
-=======
-    ros::Rate rate(20);
-    ros::Rate rate_1(1);
-    
-    // wait for armcommand 
- /*   nh.setParam("/finished_stage",NONE);
-    
-    while (ros::ok() && !(mission_state == TOARM))
-    {
-        std::cout << "---------- wait for arm command-----------" << std::endl;
-        rate_1.sleep();       
-        ros::spinOnce();
-    }
-    // receive arm command
-    std::cout << "----------- receive arm command !!! --------" << std::endl;
-    // shutdown this subscriber
-    mission_state_sub.shutdown();
-*/
-    // 在此处进行起飞顺序的批准
-    // 起飞顺序
-    // when_to_set_up(nh);
->>>>>>> d660a6252dda2ca4f9d5cd7be38c548df89a448f
 
             one_pose = one_pose_all[i];
             nh.setParam("/target_pos_x" , one_pose["x"]);
@@ -186,7 +153,6 @@ void impossible_mission(ros::NodeHandle& nh,ros::Publisher& goal_pose_pub){
         if ( distance_3f(target_pose,drone_state) < 0.2 ) break;
         rate_1.sleep();
         ros::spinOnce();
-<<<<<<< HEAD
         }
         drone_state_sub.shutdown(); // shutdown subscriber
     */
@@ -200,36 +166,6 @@ void impossible_mission(ros::NodeHandle& nh,ros::Publisher& goal_pose_pub){
         if ( distance_3f(target_pose,drone_state) < 0.2 ) break;
         rate_1.sleep();
         ros::spinOnce();
-=======
-    }
-    std::cout << " -------- all crossed zone , use time: "<< time_out << "-------------- " << std::endl;
-    quad_other_zone_sub.shutdown();
-    nh.setParam("/go_cross_rect",true);   
-    // set flight point after rect
-    // 对于本无人机到达了几号航点需要进行获取，topic名后续确定
-    ros::Subscriber target_number_sub = nh.subscribe("/TargetNumber", 10, target_number_cb);
-    double time_wait = .0;
-    while(ros::ok() && !(target>=1 && target<=6)){
-        std::cout << " ------- wait target number , use time: "<< time_wait << " --------" << std::endl;
-        rate_1.sleep();
-        ros::spinOnce();
-    }
-    target_number_sub.shutdown();
-    std::cout << " ------- ready to cross rect --------" << std::endl;
-    //
-    if(nh.getParam("/swarm_assemble/rect_target_pos",rect_pose_all)){
-        if(uav_number >=1 && uav_number <=6){
-            rect_pose = rect_pose_all[target_number];
-            nh.setParam("/target_pos_x" , rect_pose["x"]);
-            nh.setParam("/target_pos_y" , rect_pose["y"]);
-            nh.setParam("/target_pos_z" , rect_pose["z"]);
-        // change target pose
-            target_pose[0] = nh.param("/target_pos_x",.0);
-            target_pose[1] = nh.param("/target_pos_y",.0);
-            target_pose[2] = nh.param("/target_pos_z",.0);
-	    // publish planning goal
-            std::cout << "set way point before rect success!" << std::endl;
->>>>>>> d660a6252dda2ca4f9d5cd7be38c548df89a448f
         }
         drone_state_sub.shutdown(); // shutdown subscriber
         break;
