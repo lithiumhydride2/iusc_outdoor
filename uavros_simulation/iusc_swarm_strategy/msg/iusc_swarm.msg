@@ -1,4 +1,4 @@
-uint8 uav_id
+uint8 uav_number
 uint8 target_number
 bool able_to_take_off
 bool before_rect_success
