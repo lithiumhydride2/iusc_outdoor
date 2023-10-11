@@ -13,6 +13,7 @@
 #include <array>
 //#include <prometheus_msgs/DroneState.h>
 #include <unordered_map>
+#include <iusc_maze/map2local_server.srv>
 // mission state
 
 // int mission_state = 0;
@@ -20,10 +21,9 @@ int uav_number = 999;
 std::array<float,3> drone_state = {0,0,0};
 std::array<float,3> target_pose = {0,0,0};
 int target_number = 999;
-enum {TOARM = 1, TOLAND = 2, MAYDAY = 3};
-enum {NONE = 0, zone = 1, STATIC_RECTANGLE = 2, ROTATING_RECTANGE = 3, CIRCLE = 4, UGV = 5};
+//enum {TOARM = 1, TOLAND = 2, MAYDAY = 3};
+//enum {NONE = 0, zone = 1, STATIC_RECTANGLE = 2, ROTATING_RECTANGE = 3, CIRCLE = 4, UGV = 5};
 
-//  others_pose
 std::unordered_map<int,bool> other_quad_pose_zone;
 std::unordered_map<int,bool> other_quad_pose_before_rect;
 std::unordered_map<int,bool> other_quad_pose_cross_rect;
@@ -103,14 +103,9 @@ void drone_state_cb(const geometry_msgs::PoseStamped &tmp){
     drone_state[2] = tmp.pose.position.z ;
 }
 
-void impossible_mission(ros::NodeHandle &nh, ros::Publisher& goal_pose_pub);
-
-
-float distance_3f(std::array<float,3> &self_pose,std::array<float,3> &other_pose){
+float distance_3f(geometry_msgs::PoseStamped &self_pose,std::array<float,3> &other_pose){
     float distance = .0;
-    for(int i = 0 ; i <self_pose.size() ; ++i){
-        distance += pow(self_pose[i] - other_pose[i] , 2);
-    }
+    distance = pow(self_pose.pose.position.x - other_pose[0] , 2) + pow(self_pose.pose.position.y - other_pose[1] , 2) + pow(self_pose.pose.position.z - other_pose[2] , 2);
     return sqrt(distance);
 }
 
@@ -127,128 +122,6 @@ void impossible_mission(ros::NodeHandle& nh,ros::Publisher& goal_pose_pub){
     {       
         if(nh.getParam("/swarm_assemble/one_target_pos_2",one_pose_all)){
         } else ROS_ERROR("param set error");
-        for(int i = 0 ;i < one_pose_all.size() ; i++){
-
-            one_pose = one_pose_all[i];
-            nh.setParam("/target_pos_x" , one_pose["x"]);
-            nh.setParam("/target_pos_y" , one_pose["y"]);
-            nh.setParam("/target_pos_z" , one_pose["z"]);
-            // planning/goal
-            geometry_msgs::PoseStamped first_planning_goal;
-            first_planning_goal.header.stamp = ros::Time::now();
-            first_planning_goal.pose.position.x = one_pose["x"];
-            first_planning_goal.pose.position.y = one_pose["y"];
-            first_planning_goal.pose.position.z = one_pose["z"];
-            goal_pose_pub.publish(first_planning_goal);
-
-            std::cout << "set way point success  : " << i << std::endl;
-            target_pose[0] = first_planning_goal.pose.position.x;
-            target_pose[1] = first_planning_goal.pose.position.y;
-            target_pose[2] = first_planning_goal.pose.position.z;
-
-            /*ros::Subscriber drone_state_sub = nh.subscribe("/prometheus/drone_state",10,drone_state_cb);
-    while(ros::ok()){
-        float distance = distance_3f(target_pose,drone_state) ;
-        std::cout << " --- distance to way point  : " << distance << std::endl;
-        if ( distance_3f(target_pose,drone_state) < 0.2 ) break;
-        rate_1.sleep();
-        ros::spinOnce();
-        }
-        drone_state_sub.shutdown(); // shutdown subscriber
-    */
-    switch (uav_number)
-    {
-    case 1:
-        {ros::Subscriber drone_state_sub = nh.subscribe("/uav1/mavros/local_position/pose",10,drone_state_cb);
-        while(ros::ok()){
-        float distance = distance_3f(target_pose,drone_state) ;
-        std::cout << " --- distance to way point  : " << distance << std::endl;
-        if ( distance_3f(target_pose,drone_state) < 0.2 ) break;
-        rate_1.sleep();
-        ros::spinOnce();
-        }
-        drone_state_sub.shutdown(); // shutdown subscriber
-        break;
-        }
-
-    case 2:
-        {ros::Subscriber drone_state_sub = nh.subscribe("/uav2/mavros/local_position/pose",10,drone_state_cb);
-        while(ros::ok()){
-        float distance = distance_3f(target_pose,drone_state) ;
-        std::cout << " --- distance to way point  : " << distance << std::endl;
-        if ( distance_3f(target_pose,drone_state) < 0.2 ) break;
-        rate_1.sleep();
-        ros::spinOnce();
-        }
-        drone_state_sub.shutdown(); // shutdown subscriber
-        break;
-        }
-
-    case 3:
-        {ros::Subscriber drone_state_sub = nh.subscribe("/uav3/mavros/local_position/pose",10,drone_state_cb);
-        while(ros::ok()){
-        float distance = distance_3f(target_pose,drone_state) ;
-        std::cout << " --- distance to way point  : " << distance << std::endl;
-        if ( distance_3f(target_pose,drone_state) < 0.2 ) break;
-        rate_1.sleep();
-        ros::spinOnce();
-        }
-        drone_state_sub.shutdown(); // shutdown subscriber
-        break;
-        }
-
-    case 4:
-        {ros::Subscriber drone_state_sub = nh.subscribe("/uav4/mavros/local_position/pose",10,drone_state_cb);
-        while(ros::ok()){
-        float distance = distance_3f(target_pose,drone_state) ;
-        std::cout << " --- distance to way point  : " << distance << std::endl;
-        if ( distance_3f(target_pose,drone_state) < 0.2 ) break;
-        rate_1.sleep();
-        ros::spinOnce();
-        }
-        drone_state_sub.shutdown(); // shutdown subscriber
-        break;
-        }
-
-    case 5:
-        {ros::Subscriber drone_state_sub = nh.subscribe("/uav5/mavros/local_position/pose",10,drone_state_cb);
-        while(ros::ok()){
-        float distance = distance_3f(target_pose,drone_state) ;
-        std::cout << " --- distance to way point  : " << distance << std::endl;
-        if ( distance_3f(target_pose,drone_state) < 0.2 ) break;
-        rate_1.sleep();
-        ros::spinOnce();
-        }
-        drone_state_sub.shutdown(); // shutdown subscriber
-        break;
-        }
-
-    case 6:
-        {ros::Subscriber drone_state_sub = nh.subscribe("/uav6/mavros/local_position/pose",10,drone_state_cb);
-        while(ros::ok()){
-        float distance = distance_3f(target_pose,drone_state) ;
-        std::cout << " --- distance to way point  : " << distance << std::endl;
-        if ( distance_3f(target_pose,drone_state) < 0.2 ) break;
-        rate_1.sleep();
-        ros::spinOnce();
-        }
-        drone_state_sub.shutdown(); // shutdown subscriber
-        break;
-        }
-    }
-            std::cout << " reach target : " << i << std::endl;
-
-        }
-        iusc_swarm_strategy::iusc_swarm room_arrange_success_msg;
-        room_arrange_success_msg.target_number = target_number;
-        room_arrange_success_msg.room_arrange_success = true;
-        ros::Publisher room_arrange_pub = nh.advertise<iusc_swarm_strategy::iusc_swarm>("/able_to_take_off",10 ,true);
-        for(int i = 0 ;i < 3 ; i++)
-        {
-            room_arrange_pub.publish(room_arrange_success_msg);
-            rate_1.sleep();
-            ros::spinOnce();
-        }
         break;
     }
     case 3:
@@ -268,127 +141,6 @@ void impossible_mission(ros::NodeHandle& nh,ros::Publisher& goal_pose_pub){
 
         if(nh.getParam("/swarm_assemble/one_target_pos_3",one_pose_all)){
         } else ROS_ERROR("param set error");
-        for(int i = 0 ;i < one_pose_all.size() ; i++){
-
-            one_pose = one_pose_all[i];
-            nh.setParam("/target_pos_x" , one_pose["x"]);
-            nh.setParam("/target_pos_y" , one_pose["y"]);
-            nh.setParam("/target_pos_z" , one_pose["z"]);
-            // planning/goal
-            geometry_msgs::PoseStamped first_planning_goal;
-            first_planning_goal.header.stamp = ros::Time::now();
-            first_planning_goal.pose.position.x = one_pose["x"];
-            first_planning_goal.pose.position.y = one_pose["y"];
-            first_planning_goal.pose.position.z = one_pose["z"];
-            goal_pose_pub.publish(first_planning_goal);
-
-            std::cout << "set way point success  : " << i << std::endl;
-            target_pose[0] = first_planning_goal.pose.position.x;
-            target_pose[1] = first_planning_goal.pose.position.y;
-            target_pose[2] = first_planning_goal.pose.position.z;
-
-            /*ros::Subscriber drone_state_sub = nh.subscribe("/prometheus/drone_state",10,drone_state_cb);
-    while(ros::ok()){
-        float distance = distance_3f(target_pose,drone_state) ;
-        std::cout << " --- distance to way point  : " << distance << std::endl;
-        if ( distance_3f(target_pose,drone_state) < 0.2 ) break;
-        rate_1.sleep();
-        ros::spinOnce();
-        }
-        drone_state_sub.shutdown(); // shutdown subscriber
-    */
-    switch (uav_number)
-    {
-    case 1:
-        {ros::Subscriber drone_state_sub = nh.subscribe("/uav1/mavros/local_position/pose",10,drone_state_cb);
-        while(ros::ok()){
-        float distance = distance_3f(target_pose,drone_state) ;
-        std::cout << " --- distance to way point  : " << distance << std::endl;
-        if ( distance_3f(target_pose,drone_state) < 0.2 ) break;
-        rate_1.sleep();
-        ros::spinOnce();
-        }
-        drone_state_sub.shutdown(); // shutdown subscriber
-        break;
-        }
-
-    case 2:
-        {ros::Subscriber drone_state_sub = nh.subscribe("/uav2/mavros/local_position/pose",10,drone_state_cb);
-        while(ros::ok()){
-        float distance = distance_3f(target_pose,drone_state) ;
-        std::cout << " --- distance to way point  : " << distance << std::endl;
-        if ( distance_3f(target_pose,drone_state) < 0.2 ) break;
-        rate_1.sleep();
-        ros::spinOnce();
-        }
-        drone_state_sub.shutdown(); // shutdown subscriber
-        break;
-        }
-
-    case 3:
-        {ros::Subscriber drone_state_sub = nh.subscribe("/uav3/mavros/local_position/pose",10,drone_state_cb);
-        while(ros::ok()){
-        float distance = distance_3f(target_pose,drone_state) ;
-        std::cout << " --- distance to way point  : " << distance << std::endl;
-        if ( distance_3f(target_pose,drone_state) < 0.2 ) break;
-        rate_1.sleep();
-        ros::spinOnce();
-        }
-        drone_state_sub.shutdown(); // shutdown subscriber
-        break;
-        }
-
-    case 4:
-        {ros::Subscriber drone_state_sub = nh.subscribe("/uav4/mavros/local_position/pose",10,drone_state_cb);
-        while(ros::ok()){
-        float distance = distance_3f(target_pose,drone_state) ;
-        std::cout << " --- distance to way point  : " << distance << std::endl;
-        if ( distance_3f(target_pose,drone_state) < 0.2 ) break;
-        rate_1.sleep();
-        ros::spinOnce();
-        }
-        drone_state_sub.shutdown(); // shutdown subscriber
-        break;
-        }
-
-    case 5:
-        {ros::Subscriber drone_state_sub = nh.subscribe("/uav5/mavros/local_position/pose",10,drone_state_cb);
-        while(ros::ok()){
-        float distance = distance_3f(target_pose,drone_state) ;
-        std::cout << " --- distance to way point  : " << distance << std::endl;
-        if ( distance_3f(target_pose,drone_state) < 0.2 ) break;
-        rate_1.sleep();
-        ros::spinOnce();
-        }
-        drone_state_sub.shutdown(); // shutdown subscriber
-        break;
-        }
-
-    case 6:
-        {ros::Subscriber drone_state_sub = nh.subscribe("/uav6/mavros/local_position/pose",10,drone_state_cb);
-        while(ros::ok()){
-        float distance = distance_3f(target_pose,drone_state) ;
-        std::cout << " --- distance to way point  : " << distance << std::endl;
-        if ( distance_3f(target_pose,drone_state) < 0.2 ) break;
-        rate_1.sleep();
-        ros::spinOnce();
-        }
-        drone_state_sub.shutdown(); // shutdown subscriber
-        break;
-        }
-    }
-            std::cout << " reach target : " << i << std::endl;
-        }
-        iusc_swarm_strategy::iusc_swarm room_arrange_success_msg;
-        room_arrange_success_msg.target_number = target_number;
-        room_arrange_success_msg.room_arrange_success = true;
-        ros::Publisher room_arrange_pub = nh.advertise<iusc_swarm_strategy::iusc_swarm>("/able_to_take_off",10 ,true);
-        for(int i = 0 ;i < 3 ; i++)
-        {
-            room_arrange_pub.publish(room_arrange_success_msg);
-            rate_1.sleep();
-            ros::spinOnce();
-        }
         break;
     }
     case 1:
@@ -407,127 +159,6 @@ void impossible_mission(ros::NodeHandle& nh,ros::Publisher& goal_pose_pub){
 
         if(nh.getParam("/swarm_assemble/one_target_pos_1",one_pose_all)){
         } else ROS_ERROR("param set error");
-        for(int i = 0 ;i < one_pose_all.size() ; i++){
-
-            one_pose = one_pose_all[i];
-            nh.setParam("/target_pos_x" , one_pose["x"]);
-            nh.setParam("/target_pos_y" , one_pose["y"]);
-            nh.setParam("/target_pos_z" , one_pose["z"]);
-            // planning/goal
-            geometry_msgs::PoseStamped first_planning_goal;
-            first_planning_goal.header.stamp = ros::Time::now();
-            first_planning_goal.pose.position.x = one_pose["x"];
-            first_planning_goal.pose.position.y = one_pose["y"];
-            first_planning_goal.pose.position.z = one_pose["z"];
-            goal_pose_pub.publish(first_planning_goal);
-
-            std::cout << "set way point success  : " << i << std::endl;
-            target_pose[0] = first_planning_goal.pose.position.x;
-            target_pose[1] = first_planning_goal.pose.position.y;
-            target_pose[2] = first_planning_goal.pose.position.z;
-
-/*ros::Subscriber drone_state_sub = nh.subscribe("/prometheus/drone_state",10,drone_state_cb);
-    while(ros::ok()){
-        float distance = distance_3f(target_pose,drone_state) ;
-        std::cout << " --- distance to way point  : " << distance << std::endl;
-        if ( distance_3f(target_pose,drone_state) < 0.2 ) break;
-        rate_1.sleep();
-        ros::spinOnce();
-        }
-        drone_state_sub.shutdown(); // shutdown subscriber
-    */
-    switch (uav_number)
-    {
-    case 1:
-        {ros::Subscriber drone_state_sub = nh.subscribe("/uav1/mavros/local_position/pose",10,drone_state_cb);
-        while(ros::ok()){
-        float distance = distance_3f(target_pose,drone_state) ;
-        std::cout << " --- distance to way point  : " << distance << std::endl;
-        if ( distance_3f(target_pose,drone_state) < 0.2 ) break;
-        rate_1.sleep();
-        ros::spinOnce();
-        }
-        drone_state_sub.shutdown(); // shutdown subscriber
-        break;
-        }
-
-    case 2:
-        {ros::Subscriber drone_state_sub = nh.subscribe("/uav2/mavros/local_position/pose",10,drone_state_cb);
-        while(ros::ok()){
-        float distance = distance_3f(target_pose,drone_state) ;
-        std::cout << " --- distance to way point  : " << distance << std::endl;
-        if ( distance_3f(target_pose,drone_state) < 0.2 ) break;
-        rate_1.sleep();
-        ros::spinOnce();
-        }
-        drone_state_sub.shutdown(); // shutdown subscriber
-        break;
-        }
-
-    case 3:
-        {ros::Subscriber drone_state_sub = nh.subscribe("/uav3/mavros/local_position/pose",10,drone_state_cb);
-        while(ros::ok()){
-        float distance = distance_3f(target_pose,drone_state) ;
-        std::cout << " --- distance to way point  : " << distance << std::endl;
-        if ( distance_3f(target_pose,drone_state) < 0.2 ) break;
-        rate_1.sleep();
-        ros::spinOnce();
-        }
-        drone_state_sub.shutdown(); // shutdown subscriber
-        break;
-        }
-
-    case 4:
-        {ros::Subscriber drone_state_sub = nh.subscribe("/uav4/mavros/local_position/pose",10,drone_state_cb);
-        while(ros::ok()){
-        float distance = distance_3f(target_pose,drone_state) ;
-        std::cout << " --- distance to way point  : " << distance << std::endl;
-        if ( distance_3f(target_pose,drone_state) < 0.2 ) break;
-        rate_1.sleep();
-        ros::spinOnce();
-        }
-        drone_state_sub.shutdown(); // shutdown subscriber
-        break;
-        }
-
-    case 5:
-        {ros::Subscriber drone_state_sub = nh.subscribe("/uav5/mavros/local_position/pose",10,drone_state_cb);
-        while(ros::ok()){
-        float distance = distance_3f(target_pose,drone_state) ;
-        std::cout << " --- distance to way point  : " << distance << std::endl;
-        if ( distance_3f(target_pose,drone_state) < 0.2 ) break;
-        rate_1.sleep();
-        ros::spinOnce();
-        }
-        drone_state_sub.shutdown(); // shutdown subscriber
-        break;
-        }
-
-    case 6:
-        {ros::Subscriber drone_state_sub = nh.subscribe("/uav6/mavros/local_position/pose",10,drone_state_cb);
-        while(ros::ok()){
-        float distance = distance_3f(target_pose,drone_state) ;
-        std::cout << " --- distance to way point  : " << distance << std::endl;
-        if ( distance_3f(target_pose,drone_state) < 0.2 ) break;
-        rate_1.sleep();
-        ros::spinOnce();
-        }
-        drone_state_sub.shutdown(); // shutdown subscriber
-        break;
-        }
-    }
-            std::cout << " reach target : " << i << std::endl;
-        }
-        iusc_swarm_strategy::iusc_swarm room_arrange_success_msg;
-        room_arrange_success_msg.target_number = target_number;
-        room_arrange_success_msg.room_arrange_success = true;
-        ros::Publisher room_arrange_pub = nh.advertise<iusc_swarm_strategy::iusc_swarm>("/able_to_take_off",10 ,true);
-        for(int i = 0 ;i < 3 ; i++)
-        {
-            room_arrange_pub.publish(room_arrange_success_msg);
-            rate_1.sleep();
-            ros::spinOnce();
-        }
         break;
     }
     case 4:
@@ -546,128 +177,6 @@ void impossible_mission(ros::NodeHandle& nh,ros::Publisher& goal_pose_pub){
 
         if(nh.getParam("/swarm_assemble/one_target_pos_4",one_pose_all)){
         } else ROS_ERROR("param set error");
-        for(int i = 0 ;i < one_pose_all.size() ; i++){
-
-            one_pose = one_pose_all[i];
-            nh.setParam("/target_pos_x" , one_pose["x"]);
-            nh.setParam("/target_pos_y" , one_pose["y"]);
-            nh.setParam("/target_pos_z" , one_pose["z"]);
-            // planning/goal
-            geometry_msgs::PoseStamped first_planning_goal;
-            first_planning_goal.header.stamp = ros::Time::now();
-            first_planning_goal.pose.position.x = one_pose["x"];
-            first_planning_goal.pose.position.y = one_pose["y"];
-            first_planning_goal.pose.position.z = one_pose["z"];
-            goal_pose_pub.publish(first_planning_goal);
-
-            std::cout << "set way point success  : " << i << std::endl;
-            target_pose[0] = first_planning_goal.pose.position.x;
-            target_pose[1] = first_planning_goal.pose.position.y;
-            target_pose[2] = first_planning_goal.pose.position.z;
-
-/*ros::Subscriber drone_state_sub = nh.subscribe("/prometheus/drone_state",10,drone_state_cb);
-    while(ros::ok()){
-        float distance = distance_3f(target_pose,drone_state) ;
-        std::cout << " --- distance to way point  : " << distance << std::endl;
-        if ( distance_3f(target_pose,drone_state) < 0.2 ) break;
-        rate_1.sleep();
-        ros::spinOnce();
-        }
-        drone_state_sub.shutdown(); // shutdown subscriber
-    */
-    switch (uav_number)
-    {
-    case 1:
-        {ros::Subscriber drone_state_sub = nh.subscribe("/uav1/mavros/local_position/pose",10,drone_state_cb);
-        while(ros::ok()){
-        float distance = distance_3f(target_pose,drone_state) ;
-        std::cout << " --- distance to way point  : " << distance << std::endl;
-        if ( distance_3f(target_pose,drone_state) < 0.2 ) break;
-        rate_1.sleep();
-        ros::spinOnce();
-        }
-        drone_state_sub.shutdown(); // shutdown subscriber
-        break;
-        }
-
-    case 2:
-        {ros::Subscriber drone_state_sub = nh.subscribe("/uav2/mavros/local_position/pose",10,drone_state_cb);
-        while(ros::ok()){
-        float distance = distance_3f(target_pose,drone_state) ;
-        std::cout << " --- distance to way point  : " << distance << std::endl;
-        if ( distance_3f(target_pose,drone_state) < 0.2 ) break;
-        rate_1.sleep();
-        ros::spinOnce();
-        }
-        drone_state_sub.shutdown(); // shutdown subscriber
-        break;
-        }
-
-    case 3:
-        {ros::Subscriber drone_state_sub = nh.subscribe("/uav3/mavros/local_position/pose",10,drone_state_cb);
-        while(ros::ok()){
-        float distance = distance_3f(target_pose,drone_state) ;
-        std::cout << " --- distance to way point  : " << distance << std::endl;
-        if ( distance_3f(target_pose,drone_state) < 0.2 ) break;
-        rate_1.sleep();
-        ros::spinOnce();
-        }
-        drone_state_sub.shutdown(); // shutdown subscriber
-        break;
-        }
-
-    case 4:
-        {ros::Subscriber drone_state_sub = nh.subscribe("/uav4/mavros/local_position/pose",10,drone_state_cb);
-        while(ros::ok()){
-        float distance = distance_3f(target_pose,drone_state) ;
-        std::cout << " --- distance to way point  : " << distance << std::endl;
-        if ( distance_3f(target_pose,drone_state) < 0.2 ) break;
-        rate_1.sleep();
-        ros::spinOnce();
-        }
-        drone_state_sub.shutdown(); // shutdown subscriber
-        break;
-        }
-
-    case 5:
-        {ros::Subscriber drone_state_sub = nh.subscribe("/uav5/mavros/local_position/pose",10,drone_state_cb);
-        while(ros::ok()){
-        float distance = distance_3f(target_pose,drone_state) ;
-        std::cout << " --- distance to way point  : " << distance << std::endl;
-        if ( distance_3f(target_pose,drone_state) < 0.2 ) break;
-        rate_1.sleep();
-        ros::spinOnce();
-        }
-        drone_state_sub.shutdown(); // shutdown subscriber
-        break;
-        }
-
-    case 6:
-        {ros::Subscriber drone_state_sub = nh.subscribe("/uav6/mavros/local_position/pose",10,drone_state_cb);
-        while(ros::ok()){
-        float distance = distance_3f(target_pose,drone_state) ;
-        std::cout << " --- distance to way point  : " << distance << std::endl;
-        if ( distance_3f(target_pose,drone_state) < 0.2 ) break;
-        rate_1.sleep();
-        ros::spinOnce();
-        }
-        drone_state_sub.shutdown(); // shutdown subscriber
-        break;
-        }
-    }
-            std::cout << " reach target : " << i << std::endl;
-
-        }
-        iusc_swarm_strategy::iusc_swarm room_arrange_success_msg;
-        room_arrange_success_msg.target_number = target_number;
-        room_arrange_success_msg.room_arrange_success = true;
-        ros::Publisher room_arrange_pub = nh.advertise<iusc_swarm_strategy::iusc_swarm>("/able_to_take_off",10 ,true);
-        for(int i = 0 ;i < 3 ; i++)
-        {
-            room_arrange_pub.publish(room_arrange_success_msg);
-            rate_1.sleep();
-            ros::spinOnce();
-        }
         break;
     }
     case 0:
@@ -686,128 +195,6 @@ void impossible_mission(ros::NodeHandle& nh,ros::Publisher& goal_pose_pub){
 
         if(nh.getParam("/swarm_assemble/one_target_pos_0",one_pose_all)){
         } else ROS_ERROR("param set error");
-
-        for(int i = 0 ;i < one_pose_all.size() ; i++){
-
-            one_pose = one_pose_all[i];
-            nh.setParam("/target_pos_x" , one_pose["x"]);
-            nh.setParam("/target_pos_y" , one_pose["y"]);
-            nh.setParam("/target_pos_z" , one_pose["z"]);
-            // planning/goal
-            geometry_msgs::PoseStamped first_planning_goal;
-            first_planning_goal.header.stamp = ros::Time::now();
-            first_planning_goal.pose.position.x = one_pose["x"];
-            first_planning_goal.pose.position.y = one_pose["y"];
-            first_planning_goal.pose.position.z = one_pose["z"];
-            goal_pose_pub.publish(first_planning_goal);
-
-            std::cout << "set way point success  : " << i << std::endl;
-            target_pose[0] = first_planning_goal.pose.position.x;
-            target_pose[1] = first_planning_goal.pose.position.y;
-            target_pose[2] = first_planning_goal.pose.position.z;
-
-            /*ros::Subscriber drone_state_sub = nh.subscribe("/prometheus/drone_state",10,drone_state_cb);
-    while(ros::ok()){
-        float distance = distance_3f(target_pose,drone_state) ;
-        std::cout << " --- distance to way point  : " << distance << std::endl;
-        if ( distance_3f(target_pose,drone_state) < 0.2 ) break;
-        rate_1.sleep();
-        ros::spinOnce();
-        }
-        drone_state_sub.shutdown(); // shutdown subscriber
-    */
-    switch (uav_number)
-    {
-    case 1:
-        {ros::Subscriber drone_state_sub = nh.subscribe("/uav1/mavros/local_position/pose",10,drone_state_cb);
-        while(ros::ok()){
-        float distance = distance_3f(target_pose,drone_state) ;
-        std::cout << " --- distance to way point  : " << distance << std::endl;
-        if ( distance_3f(target_pose,drone_state) < 0.2 ) break;
-        rate_1.sleep();
-        ros::spinOnce();
-        }
-        drone_state_sub.shutdown(); // shutdown subscriber
-        break;
-        }
-
-    case 2:
-        {ros::Subscriber drone_state_sub = nh.subscribe("/uav2/mavros/local_position/pose",10,drone_state_cb);
-        while(ros::ok()){
-        float distance = distance_3f(target_pose,drone_state) ;
-        std::cout << " --- distance to way point  : " << distance << std::endl;
-        if ( distance_3f(target_pose,drone_state) < 0.2 ) break;
-        rate_1.sleep();
-        ros::spinOnce();
-        }
-        drone_state_sub.shutdown(); // shutdown subscriber
-        break;
-        }
-
-    case 3:
-        {ros::Subscriber drone_state_sub = nh.subscribe("/uav3/mavros/local_position/pose",10,drone_state_cb);
-        while(ros::ok()){
-        float distance = distance_3f(target_pose,drone_state) ;
-        std::cout << " --- distance to way point  : " << distance << std::endl;
-        if ( distance_3f(target_pose,drone_state) < 0.2 ) break;
-        rate_1.sleep();
-        ros::spinOnce();
-        }
-        drone_state_sub.shutdown(); // shutdown subscriber
-        break;
-        }
-
-    case 4:
-        {ros::Subscriber drone_state_sub = nh.subscribe("/uav4/mavros/local_position/pose",10,drone_state_cb);
-        while(ros::ok()){
-        float distance = distance_3f(target_pose,drone_state) ;
-        std::cout << " --- distance to way point  : " << distance << std::endl;
-        if ( distance_3f(target_pose,drone_state) < 0.2 ) break;
-        rate_1.sleep();
-        ros::spinOnce();
-        }
-        drone_state_sub.shutdown(); // shutdown subscriber
-        break;
-        }
-
-    case 5:
-        {ros::Subscriber drone_state_sub = nh.subscribe("/uav5/mavros/local_position/pose",10,drone_state_cb);
-        while(ros::ok()){
-        float distance = distance_3f(target_pose,drone_state) ;
-        std::cout << " --- distance to way point  : " << distance << std::endl;
-        if ( distance_3f(target_pose,drone_state) < 0.2 ) break;
-        rate_1.sleep();
-        ros::spinOnce();
-        }
-        drone_state_sub.shutdown(); // shutdown subscriber
-        break;
-        }
-
-    case 6:
-        {ros::Subscriber drone_state_sub = nh.subscribe("/uav6/mavros/local_position/pose",10,drone_state_cb);
-        while(ros::ok()){
-        float distance = distance_3f(target_pose,drone_state) ;
-        std::cout << " --- distance to way point  : " << distance << std::endl;
-        if ( distance_3f(target_pose,drone_state) < 0.2 ) break;
-        rate_1.sleep();
-        ros::spinOnce();
-        }
-        drone_state_sub.shutdown(); // shutdown subscriber
-        break;
-        }
-    }
-            std::cout << " reach target : " << i << std::endl;
-        }
-        iusc_swarm_strategy::iusc_swarm room_arrange_success_msg;
-        room_arrange_success_msg.target_number = target_number;
-        room_arrange_success_msg.room_arrange_success = true;
-        ros::Publisher room_arrange_pub = nh.advertise<iusc_swarm_strategy::iusc_swarm>("/able_to_take_off",10 ,true);
-        for(int i = 0 ;i < 3 ; i++)
-        {
-            room_arrange_pub.publish(room_arrange_success_msg);
-            rate_1.sleep();
-            ros::spinOnce();
-        }
         break;
     }
     case 5:
@@ -825,132 +212,110 @@ void impossible_mission(ros::NodeHandle& nh,ros::Publisher& goal_pose_pub){
         quad_other_room_arrange_sub.shutdown();
         if(nh.getParam("/swarm_assemble/one_target_pos_5",one_pose_all)){
         } else ROS_ERROR("param set error");
-
-        for(int i = 0 ;i < one_pose_all.size() ; i++){
-
-            one_pose = one_pose_all[i];
-            nh.setParam("/target_pos_x" , one_pose["x"]);
-            nh.setParam("/target_pos_y" , one_pose["y"]);
-            nh.setParam("/target_pos_z" , one_pose["z"]);
-            // planning/goal
-            geometry_msgs::PoseStamped first_planning_goal;
-            first_planning_goal.header.stamp = ros::Time::now();
-            first_planning_goal.pose.position.x = one_pose["x"];
-            first_planning_goal.pose.position.y = one_pose["y"];
-            first_planning_goal.pose.position.z = one_pose["z"];
-            goal_pose_pub.publish(first_planning_goal);
-
-            std::cout << "set way point success  : " << i << std::endl;
-            target_pose[0] = first_planning_goal.pose.position.x;
-            target_pose[1] = first_planning_goal.pose.position.y;
-            target_pose[2] = first_planning_goal.pose.position.z;
-
-            /*ros::Subscriber drone_state_sub = nh.subscribe("/prometheus/drone_state",10,drone_state_cb);
-    while(ros::ok()){
-        float distance = distance_3f(target_pose,drone_state) ;
-        std::cout << " --- distance to way point  : " << distance << std::endl;
-        if ( distance_3f(target_pose,drone_state) < 0.2 ) break;
-        rate_1.sleep();
-        ros::spinOnce();
-        }
-        drone_state_sub.shutdown(); // shutdown subscriber
-    */
-    switch (uav_number)
-    {
-    case 1:
-        {ros::Subscriber drone_state_sub = nh.subscribe("/uav1/mavros/local_position/pose",10,drone_state_cb);
-        while(ros::ok()){
-        float distance = distance_3f(target_pose,drone_state) ;
-        std::cout << " --- distance to way point  : " << distance << std::endl;
-        if ( distance_3f(target_pose,drone_state) < 0.2 ) break;
-        rate_1.sleep();
-        ros::spinOnce();
-        }
-        drone_state_sub.shutdown(); // shutdown subscriber
         break;
-        }
-
-    case 2:
-        {ros::Subscriber drone_state_sub = nh.subscribe("/uav2/mavros/local_position/pose",10,drone_state_cb);
-        while(ros::ok()){
-        float distance = distance_3f(target_pose,drone_state) ;
-        std::cout << " --- distance to way point  : " << distance << std::endl;
-        if ( distance_3f(target_pose,drone_state) < 0.2 ) break;
-        rate_1.sleep();
-        ros::spinOnce();
-        }
-        drone_state_sub.shutdown(); // shutdown subscriber
-        break;
-        }
-
-    case 3:
-        {ros::Subscriber drone_state_sub = nh.subscribe("/uav3/mavros/local_position/pose",10,drone_state_cb);
-        while(ros::ok()){
-        float distance = distance_3f(target_pose,drone_state) ;
-        std::cout << " --- distance to way point  : " << distance << std::endl;
-        if ( distance_3f(target_pose,drone_state) < 0.2 ) break;
-        rate_1.sleep();
-        ros::spinOnce();
-        }
-        drone_state_sub.shutdown(); // shutdown subscriber
-        break;
-        }
-
-    case 4:
-        {ros::Subscriber drone_state_sub = nh.subscribe("/uav4/mavros/local_position/pose",10,drone_state_cb);
-        while(ros::ok()){
-        float distance = distance_3f(target_pose,drone_state) ;
-        std::cout << " --- distance to way point  : " << distance << std::endl;
-        if ( distance_3f(target_pose,drone_state) < 0.2 ) break;
-        rate_1.sleep();
-        ros::spinOnce();
-        }
-        drone_state_sub.shutdown(); // shutdown subscriber
-        break;
-        }
-
-    case 5:
-        {ros::Subscriber drone_state_sub = nh.subscribe("/uav5/mavros/local_position/pose",10,drone_state_cb);
-        while(ros::ok()){
-        float distance = distance_3f(target_pose,drone_state) ;
-        std::cout << " --- distance to way point  : " << distance << std::endl;
-        if ( distance_3f(target_pose,drone_state) < 0.2 ) break;
-        rate_1.sleep();
-        ros::spinOnce();
-        }
-        drone_state_sub.shutdown(); // shutdown subscriber
-        break;
-        }
-
-    case 6:
-        {ros::Subscriber drone_state_sub = nh.subscribe("/uav6/mavros/local_position/pose",10,drone_state_cb);
-        while(ros::ok()){
-        float distance = distance_3f(target_pose,drone_state) ;
-        std::cout << " --- distance to way point  : " << distance << std::endl;
-        if ( distance_3f(target_pose,drone_state) < 0.2 ) break;
-        rate_1.sleep();
-        ros::spinOnce();
-        }
-        drone_state_sub.shutdown(); // shutdown subscriber
-        break;
-        }
     }
-            std::cout << " reach target : " << i << std::endl;
-        }
+    }
+    for(int i = 0 ;i < one_pose_all.size() ; i++){
 
-        iusc_swarm_strategy::iusc_swarm room_arrange_success_msg;
-        room_arrange_success_msg.target_number = target_number;
-        room_arrange_success_msg.room_arrange_success = true;
-        ros::Publisher room_arrange_pub = nh.advertise<iusc_swarm_strategy::iusc_swarm>("/able_to_take_off",10 ,true);
-        for(int i = 0 ;i < 3 ; i++)
+        one_pose = one_pose_all[i];
+        nh.setParam("/target_pos_x" , one_pose["x"]);
+        nh.setParam("/target_pos_y" , one_pose["y"]);
+        nh.setParam("/target_pos_z" , one_pose["z"]);
+        // planning/goal
+        geometry_msgs::PoseStamped first_planning_goal;
+        first_planning_goal.header.stamp = ros::Time::now();
+        first_planning_goal.pose.position.x = one_pose["x"];
+        first_planning_goal.pose.position.y = one_pose["y"];
+        first_planning_goal.pose.position.z = one_pose["z"];
+        goal_pose_pub.publish(first_planning_goal);
+
+        std::cout << "set way point success  : " << i << std::endl;
+        target_pose[0] = first_planning_goal.pose.position.x;
+        target_pose[1] = first_planning_goal.pose.position.y;
+        target_pose[2] = first_planning_goal.pose.position.z;
+        
+       // 坐标转换
+        ros::ServiceClient map2local_client = nh.serviceClient<iusc_maze::map2local_server>("/map2local_server");// 请替换为实际的服务名称
+        // 等待服务可用
+        /*
+        if (!map2local_client.waitForExistence()) {
+            ROS_ERROR("Service not available.");
+            return 1;
+        }
+        */
+        while (ros::ok() && !map2local_client.waitForExistence()) {
+            ROS_ERROR("Service not available.");
+            rate.sleep();
+            ros::spinOnce();
+        }
+        // 创建服务请求
+        iusc_maze::map2local_server srv;
+        srv.request.x_map = target_pose[0];
+        srv.request.y_map = target_pose[1]
+        //发送服务请求
+        /*   if (map2local_client.call(srv)){
+                if (srv.response.success) {
+                    ROS_INFO("Service call succeeded. Local X: %f, Local Y: %f",srv.response.x_local,srv.response.y_local);
+                // publish planning goal
+                    ros::Publisher waypoint_pub = nh.advertise<geometry_msgs::PoseStamped>("mavros/setpoint_position/local", 10, true);
+                    geometry_msgs::PoseStamped dsr_pose;
+                    dsr_pose.header.frame_id = "map";
+                    dsr_pose.header.stamp = ros::Time::now();
+                    dsr_pose.pose.position.x = srv.response.x_local;
+                    dsr_pose.pose.position.y = srv.response.y_local;
+                    dsr_pose.pose.position.z = target_pose[2];
+                    waypoint_pub.publish(dsr_pose);
+	                std::cout << "set way point after rect success!" << std::endl;
+                } 
+                else{
+                    ROS_ERROR("Service call failed.");
+                }
+            }
+             else {
+                ROS_ERROR("Failed to call service.");
+             }
+        */
+        while (ros::ok() && !(map2local_client.call(srv) && srv.response.success) )
         {
-            room_arrange_pub.publish(room_arrange_success_msg);
+            ROS_ERROR("Failed to call service.")
+            rate.sleep();
+            ros::spinOnce();
+        }
+        // publish planning goal
+        ROS_INFO("Service call succeeded. Local X: %f, Local Y: %f",srv.response.x_local,srv.response.y_local);
+        ros::Publisher waypoint_pub = nh.advertise<geometry_msgs::PoseStamped>("mavros/setpoint_position/local", 10, true);
+        geometry_msgs::PoseStamped dsr_pose;
+        dsr_pose.header.frame_id = "map";
+        dsr_pose.header.stamp = ros::Time::now();
+        dsr_pose.pose.position.x = srv.response.x_local;
+        dsr_pose.pose.position.y = srv.response.y_local;
+        dsr_pose.pose.position.z = target_pose[2];
+        waypoint_pub.publish(dsr_pose);
+
+        //ros::Subscriber drone_state_sub = nh.subscribe("/prometheus/drone_state",10,drone_state_cb);
+        ros::Subscriber drone_state_sub = nh.subscribe("/mavros/local_position/pose",10,drone_state_cb);
+        while(ros::ok()){
+            float distance = distance_3f(dsr_pose,drone_state) ;
+            std::cout << " --- distance to way point  : " << distance << std::endl;
+            if ( distance_3f(dsr_pose,drone_state) < 0.2 ) break;
             rate_1.sleep();
             ros::spinOnce();
         }
-        break;
+        drone_state_sub.shutdown(); // shutdown subscriber
+        std::cout << " reach target : " << i << std::endl;
     }
+
+    iusc_swarm_strategy::iusc_swarm room_arrange_success_msg;
+    room_arrange_success_msg.target_number = target_number;
+    room_arrange_success_msg.room_arrange_success = true;
+    ros::Publisher room_arrange_pub = nh.advertise<iusc_swarm_strategy::iusc_swarm>("/able_to_take_off",10 ,true);
+    for(int i = 0 ;i < 3 ; i++)
+    {
+        room_arrange_pub.publish(room_arrange_success_msg);
+        rate_1.sleep();
+        ros::spinOnce();
     }
+
 }
 
 int main(int argc,char **argv){
@@ -964,21 +329,10 @@ int main(int argc,char **argv){
     ros::Rate rate_1(1);
     ros::Rate rate_2(0.1);
     
-
-    // 等待迷宫区域结束并获取target number
-/*    ros::Subscriber target_number_sub = nh.subscribe("/target",10,target_number_sub_cb);
-
-    while(ros::ok() && !(target_number>=0 && target_number<=5)){
-        std::cout << " ------- wait target number --------" << std::endl;
-        rate_2.sleep();
-        ros::spinOnce();
-    }
-    target_number_sub.shutdown();
-*/
     XmlRpc::XmlRpcValue target_number_receive;
     while(ros::ok() && !(target_number>=0 && target_number<=5)){
         std::cout << " ------- wait target number --------" << std::endl;
-        if(nh.getParam("target_number",target_number_receive))
+        if(nh.getParam("target",target_number_receive))
         {
             target_number = target_number_receive;}
             else 
@@ -999,7 +353,7 @@ int main(int argc,char **argv){
         ros::spinOnce();
     }
 
-  // 等待所有无人机均到达窗户前集结点,60秒未等到则直接穿越
+    // 等待所有无人机均到达窗户前集结点,60秒未等到则直接穿越
 
     ros::Subscriber quad_other_before_rect_sub = nh.subscribe("/able_to_take_off",10,quad_other_before_rect_sub_cb);
     double time_out = .0;
@@ -1033,7 +387,64 @@ int main(int argc,char **argv){
             target_pose[0] = nh.param("/target_pos_x",.0);
             target_pose[1] = nh.param("/target_pos_y",.0);
             target_pose[2] = nh.param("/target_pos_z",.0);
-	    // publish planning goal
+       
+       // 坐标转换
+        ros::ServiceClient map2local_client = nh.serviceClient<iusc_maze::map2local_server>("/map2local_server");// 请替换为实际的服务名称
+        // 等待服务可用
+        /*
+        if (!map2local_client.waitForExistence()) {
+            ROS_ERROR("Service not available.");
+            return 1;
+        }
+        */
+        while (ros::ok() && !map2local_client.waitForExistence()) {
+            ROS_ERROR("Service not available.");
+            rate.sleep();
+            ros::spinOnce();
+        }
+        // 创建服务请求
+        iusc_maze::map2local_server srv;
+        srv.request.x_map = target_pose[0];
+        srv.request.y_map = target_pose[1]
+        //发送服务请求
+        /*   if (map2local_client.call(srv)){
+                if (srv.response.success) {
+                    ROS_INFO("Service call succeeded. Local X: %f, Local Y: %f",srv.response.x_local,srv.response.y_local);
+                // publish planning goal
+                    ros::Publisher waypoint_pub = nh.advertise<geometry_msgs::PoseStamped>("mavros/setpoint_position/local", 10, true);
+                    geometry_msgs::PoseStamped dsr_pose;
+                    dsr_pose.header.frame_id = "map";
+                    dsr_pose.header.stamp = ros::Time::now();
+                    dsr_pose.pose.position.x = srv.response.x_local;
+                    dsr_pose.pose.position.y = srv.response.y_local;
+                    dsr_pose.pose.position.z = target_pose[2];
+                    waypoint_pub.publish(dsr_pose);
+	                std::cout << "set way point after rect success!" << std::endl;
+                } 
+                else{
+                    ROS_ERROR("Service call failed.");
+                }
+            }
+             else {
+                ROS_ERROR("Failed to call service.");
+             }
+        */
+        while (ros::ok() && !(map2local_client.call(srv) && srv.response.success) )
+        {
+            ROS_ERROR("Failed to call service.")
+            rate.sleep();
+            ros::spinOnce();
+        }
+        // publish planning goal
+        ROS_INFO("Service call succeeded. Local X: %f, Local Y: %f",srv.response.x_local,srv.response.y_local);
+        ros::Publisher waypoint_pub = nh.advertise<geometry_msgs::PoseStamped>("mavros/setpoint_position/local", 10, true);
+        geometry_msgs::PoseStamped dsr_pose;
+        dsr_pose.header.frame_id = "map";
+        dsr_pose.header.stamp = ros::Time::now();
+        dsr_pose.pose.position.x = srv.response.x_local;
+        dsr_pose.pose.position.y = srv.response.y_local;
+        dsr_pose.pose.position.z = target_pose[2];
+        waypoint_pub.publish(dsr_pose);
             std::cout << "set way point after rect success!" << std::endl;
         }
         else{
@@ -1043,337 +454,14 @@ int main(int argc,char **argv){
 
     // wait for cross rect
     //ros::Subscriber drone_state_sub = nh.subscribe("/prometheus/drone_state",10,drone_state_cb);
-/*
+    ros::Subscriber drone_state_sub = nh.subscribe("/mavros/local_position/pose",10,drone_state_cb);
     while(ros::ok()){
-        float distance = distance_3f(target_pose,drone_state) ;
+        float distance = distance_3f(dsr_pose,drone_state) ;
         std::cout << " --- distance to way point  : " << distance << std::endl;
-        if ( distance_3f(target_pose,drone_state) < 0.2 ) break;
-        rate_1.sleep();
-        ros::spinOnce();
-        }
-        drone_state_sub.shutdown(); // shutdown subscriber
-    */
-    switch (uav_number)
-    {
-    case 1:
-        {ros::Subscriber drone_state_sub = nh.subscribe("/uav1/mavros/local_position/pose",10,drone_state_cb);
-        while(ros::ok()){
-        float distance = distance_3f(target_pose,drone_state) ;
-        std::cout << " --- distance to way point  : " << distance << std::endl;
-        if ( distance_3f(target_pose,drone_state) < 0.2 ) break;
-        rate_1.sleep();
-        ros::spinOnce();
-        }
-        drone_state_sub.shutdown(); // shutdown subscriber
-        break;
-        }
-
-    case 2:
-        {ros::Subscriber drone_state_sub = nh.subscribe("/uav2/mavros/local_position/pose",10,drone_state_cb);
-        while(ros::ok()){
-        float distance = distance_3f(target_pose,drone_state) ;
-        std::cout << " --- distance to way point  : " << distance << std::endl;
-        if ( distance_3f(target_pose,drone_state) < 0.2 ) break;
-        rate_1.sleep();
-        ros::spinOnce();
-        }
-        drone_state_sub.shutdown(); // shutdown subscriber
-        break;
-        }
-
-    case 3:
-        {ros::Subscriber drone_state_sub = nh.subscribe("/uav3/mavros/local_position/pose",10,drone_state_cb);
-        while(ros::ok()){
-        float distance = distance_3f(target_pose,drone_state) ;
-        std::cout << " --- distance to way point  : " << distance << std::endl;
-        if ( distance_3f(target_pose,drone_state) < 0.2 ) break;
-        rate_1.sleep();
-        ros::spinOnce();
-        }
-        drone_state_sub.shutdown(); // shutdown subscriber
-        break;
-        }
-
-    case 4:
-        {ros::Subscriber drone_state_sub = nh.subscribe("/uav4/mavros/local_position/pose",10,drone_state_cb);
-        while(ros::ok()){
-        float distance = distance_3f(target_pose,drone_state) ;
-        std::cout << " --- distance to way point  : " << distance << std::endl;
-        if ( distance_3f(target_pose,drone_state) < 0.2 ) break;
-        rate_1.sleep();
-        ros::spinOnce();
-        }
-        drone_state_sub.shutdown(); // shutdown subscriber
-        break;
-        }
-
-    case 5:
-        {ros::Subscriber drone_state_sub = nh.subscribe("/uav5/mavros/local_position/pose",10,drone_state_cb);
-        while(ros::ok()){
-        float distance = distance_3f(target_pose,drone_state) ;
-        std::cout << " --- distance to way point  : " << distance << std::endl;
-        if ( distance_3f(target_pose,drone_state) < 0.2 ) break;
-        rate_1.sleep();
-        ros::spinOnce();
-        }
-        drone_state_sub.shutdown(); // shutdown subscriber
-        break;
-        }
-
-    case 6:
-        {ros::Subscriber drone_state_sub = nh.subscribe("/uav6/mavros/local_position/pose",10,drone_state_cb);
-        while(ros::ok()){
-        float distance = distance_3f(target_pose,drone_state) ;
-        std::cout << " --- distance to way point  : " << distance << std::endl;
-        if ( distance_3f(target_pose,drone_state) < 0.2 ) break;
-        rate_1.sleep();
-        ros::spinOnce();
-        }
-        drone_state_sub.shutdown(); // shutdown subscriber
-        break;
-        }
-    }
-
-/*   // publish to other uav
-    iusc_swarm_strategy::iusc_swarm cross_rect_success_msg;
-    cross_rect_success_msg.target_number = target_number;
-    cross_rect_success_msg.cross_rect_success = true;
-    ros::Publisher cross_rect_pub = nh.advertise<iusc_swarm_strategy::iusc_swarm>("/able_to_take_off",10 ,true);
-    for(int i = 0 ;i < 3 ; i++)
-    {
-        cross_rect_pub.publish(cross_rect_success_msg);
+        if ( distance_3f(drs_pose,drone_state) < 0.2 ) break;
         rate_1.sleep();
         ros::spinOnce();
     }
-
-    ros::Subscriber quad_other_cross_rect_sub = nh.subscribe("/able_to_take_off",10,quad_other_cross_rect_sub_cb);
-    double time_out_2 = .0;
-    
-    while (ros::ok() && (time_out < 5))
-    {
-        if(other_quad_pose_cross_rect.size() == 5){
-            int count = 0;
-            for(auto tmp: other_quad_pose_cross_rect)
-                if(tmp.second) count ++;
-            // reach!!!!
-            if(count == 5)
-                break;
-        }
-        rate_1.sleep();
-        time_out_2 ++;
-        ros::spinOnce();
-    }
-    std::cout << " -------- all crossed rect , use time: "<< time_out << "-------------- " << std::endl;
-    quad_other_cross_rect_sub.shutdown();
-    std::cout << "---- to finish impossible mission ---" << std::endl;
-*/ 
-    // when_to_cross_one(nh);
+    drone_state_sub.shutdown(); // shutdown subscriber
     impossible_mission(nh,goal_pose_pub);
-/*    switch(target_number)
-    {
-        case 5:
-        {
-        iusc_swarm_strategy::iusc_swarm room_arrange_success_msg;
-        room_arrange_success_msg.target_number = target_number;
-        room_arrange_success_msg.room_arrange_success = true;
-        ros::Publisher room_arrange_pub = nh.advertise<iusc_swarm_strategy::iusc_swarm>("/able_to_take_off",10 ,true);
-        for(int i = 0 ;i < 6 ; i++)
-        {
-            room_arrange_pub.publish(room_arrange_success_msg);
-            rate_1.sleep();
-            ros::spinOnce();
-        }
-        break;
-        }
-        
-        default:
-        {
-        ros::Subscriber quad_other_room_arrived_sub = nh.subscribe("/able_to_take_off",10,quad_other_room_arrived_sub_cb);
-        double time_out = .0;
-    
-        while (ros::ok() && able_to_leave_room == false)
-        {
-            std::cout << "waiting for target 6 arrived"<< std::endl;
-            rate_1.sleep();
-            time_out ++;
-            ros::spinOnce();
-        }
-        quad_other_room_arrived_sub.shutdown();
-        break;
-        }
-    }
-    // 通过增加time_out避碰
-    switch(target_number)
-    {
-        case 2:
-        {
-        for(int i = 0 ;i < 1 ; i++)
-        {
-            rate_1.sleep();
-            ros::spinOnce();
-        }
-        break;
-        }
-        
-        case 3:
-        {
-        for(int i = 0 ;i < 3 ; i++)
-        {
-            rate_1.sleep();
-            ros::spinOnce();
-        }
-        break;
-        }
-
-        case 1:
-        {
-        for(int i = 0 ;i < 5 ; i++)
-        {
-            rate_1.sleep();
-            ros::spinOnce();
-        }
-        break;
-        }
-        
-        case 4:
-        {
-        for(int i = 0 ;i < 7 ; i++)
-        {
-            rate_1.sleep();
-            ros::spinOnce();
-        }
-        break;
-        }
-
-        case 0:
-        {
-        for(int i = 0 ;i < 9 ; i++)
-        {
-            rate_1.sleep();
-            ros::spinOnce();
-        }
-        break;
-        }
-        
-        case 5:
-        {
-        for(int i = 0 ;i < 11 ; i++)
-        {
-            rate_1.sleep();
-            ros::spinOnce();
-        }
-        break;
-        }
-
-    if(nh.getParam("/swarm_assemble/out_of_room_pos",rect_pose_all)){
-        if(uav_number >=1 && uav_number <=6){
-            rect_pose = rect_pose_all[target_number];
-            nh.setParam("/target_pos_x" , rect_pose["x"]);
-            nh.setParam("/target_pos_y" , rect_pose["y"]);
-            nh.setParam("/target_pos_z" , rect_pose["z"]);
-        // change target pose
-            target_pose[0] = nh.param("/target_pos_x",.0);
-            target_pose[1] = nh.param("/target_pos_y",.0);
-            target_pose[2] = nh.param("/target_pos_z",.0);
-	    // publish planning goal
-            std::cout << "set way point out of room success!" << std::endl;
-        }
-        else{
-            ROS_ERROR("wrong uav unmber!");
-        }
-    } else ROS_ERROR("param set error before rect");
-
-    ros::Subscriber drone_state_sub = nh.subscribe("/prometheus/drone_state",10,drone_state_cb);
-    while(ros::ok()){
-        float distance = distance_3f(target_pose,drone_state) ;
-        std::cout << " --- distance to way point  : " << distance << std::endl;
-        if ( distance_3f(target_pose,drone_state) < 0.2 ) break;
-        rate_1.sleep();
-        ros::spinOnce();
-        }
-        drone_state_sub.shutdown(); // shutdown subscriber
-    
-    switch (uav_number)
-    {
-    case 1:
-        {ros::Subscriber drone_state_sub = nh.subscribe("/uav1/mavros/local_position/pose",10,drone_state_cb);
-        while(ros::ok()){
-        float distance = distance_3f(target_pose,drone_state) ;
-        std::cout << " --- distance to way point  : " << distance << std::endl;
-        if ( distance_3f(target_pose,drone_state) < 0.2 ) break;
-        rate_1.sleep();
-        ros::spinOnce();
-        }
-        drone_state_sub.shutdown(); // shutdown subscriber
-        break;
-        }
-
-    case 2:
-        {ros::Subscriber drone_state_sub = nh.subscribe("/uav2/mavros/local_position/pose",10,drone_state_cb);
-        while(ros::ok()){
-        float distance = distance_3f(target_pose,drone_state) ;
-        std::cout << " --- distance to way point  : " << distance << std::endl;
-        if ( distance_3f(target_pose,drone_state) < 0.2 ) break;
-        rate_1.sleep();
-        ros::spinOnce();
-        }
-        drone_state_sub.shutdown(); // shutdown subscriber
-        break;
-        }
-
-    case 3:
-        {ros::Subscriber drone_state_sub = nh.subscribe("/uav3/mavros/local_position/pose",10,drone_state_cb);
-        while(ros::ok()){
-        float distance = distance_3f(target_pose,drone_state) ;
-        std::cout << " --- distance to way point  : " << distance << std::endl;
-        if ( distance_3f(target_pose,drone_state) < 0.2 ) break;
-        rate_1.sleep();
-        ros::spinOnce();
-        }
-        drone_state_sub.shutdown(); // shutdown subscriber
-        break;
-        }
-
-    case 4:
-        {ros::Subscriber drone_state_sub = nh.subscribe("/uav4/mavros/local_position/pose",10,drone_state_cb);
-        while(ros::ok()){
-        float distance = distance_3f(target_pose,drone_state) ;
-        std::cout << " --- distance to way point  : " << distance << std::endl;
-        if ( distance_3f(target_pose,drone_state) < 0.2 ) break;
-        rate_1.sleep();
-        ros::spinOnce();
-        }
-        drone_state_sub.shutdown(); // shutdown subscriber
-        break;
-        }
-
-    case 5:
-        {ros::Subscriber drone_state_sub = nh.subscribe("/uav5/mavros/local_position/pose",10,drone_state_cb);
-        while(ros::ok()){
-        float distance = distance_3f(target_pose,drone_state) ;
-        std::cout << " --- distance to way point  : " << distance << std::endl;
-        if ( distance_3f(target_pose,drone_state) < 0.2 ) break;
-        rate_1.sleep();
-        ros::spinOnce();
-        }
-        drone_state_sub.shutdown(); // shutdown subscriber
-        break;
-        }
-
-    case 6:
-        {ros::Subscriber drone_state_sub = nh.subscribe("/uav6/mavros/local_position/pose",10,drone_state_cb);
-        while(ros::ok()){
-        float distance = distance_3f(target_pose,drone_state) ;
-        std::cout << " --- distance to way point  : " << distance << std::endl;
-        if ( distance_3f(target_pose,drone_state) < 0.2 ) break;
-        rate_1.sleep();
-        ros::spinOnce();
-        }
-        drone_state_sub.shutdown(); // shutdown subscriber
-        break;
-        }
-    }
-
-}
-*/
 }

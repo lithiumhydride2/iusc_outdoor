@@ -11,9 +11,14 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   rospy
   std_msgs
+  mavros_msgs
+  tf
   message_generation
   ## prometheus_msgs
 )
+find_package(Boost REQUIRED COMPONENTS system)
+find_package(cmake_modules REQUIRED)
+find_package(Eigen3 REQUIRED)
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
@@ -117,9 +122,13 @@ catkin_package(
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
 include_directories(
-   include
+  include
   ${catkin_INCLUDE_DIRS}
+  ${Boost_INCLUDE_DIRS}
+  ${EIGEN3_INCLUDE_DIRS}
 )
+
+add_definitions(${EIGEN_DEFINITIONS})
 
 ## Declare a C++ library
 # add_library(${PROJECT_NAME}
@@ -134,7 +143,9 @@ include_directories(
 ## Declare a C++ executable
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
-add_executable(swarm_assemble src/swarm_assemble.cpp)
+add_executable(swarm_assemble 
+src/swarm_assemble.cpp
+src/GPS_CoTF.cpp)
 ## add_executable(swarm_search src/swarm_search.cpp)
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
