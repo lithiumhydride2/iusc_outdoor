@@ -13,7 +13,7 @@
 #include <array>
 //#include <prometheus_msgs/DroneState.h>
 #include <unordered_map>
-#include <iusc_maze/map2local_server.srv>
+#include <iusc_maze/map2local.h>
 // mission state
 
 // int mission_state = 0;
@@ -112,6 +112,7 @@ float distance_3f(geometry_msgs::PoseStamped &self_pose,std::array<float,3> &oth
 void impossible_mission(ros::NodeHandle& nh,ros::Publisher& goal_pose_pub){
     XmlRpc::XmlRpcValue one_pose_all;
     XmlRpc::XmlRpcValue one_pose;
+    ros::Rate rate(20);
     ros::Rate rate_1(1.0);
 
     //ros::Subscriber drone_state_sub = nh.subscribe("/prometheus/drone_state",10,drone_state_cb);
@@ -235,7 +236,7 @@ void impossible_mission(ros::NodeHandle& nh,ros::Publisher& goal_pose_pub){
         target_pose[2] = first_planning_goal.pose.position.z;
         
        // 坐标转换
-        ros::ServiceClient map2local_client = nh.serviceClient<iusc_maze::map2local_server>("/map2local_server");// 请替换为实际的服务名称
+        ros::ServiceClient map2local_client = nh.serviceClient<iusc_maze::map2local>("/map2local_server");// 请替换为实际的服务名称
         // 等待服务可用
         /*
         if (!map2local_client.waitForExistence()) {
@@ -249,9 +250,9 @@ void impossible_mission(ros::NodeHandle& nh,ros::Publisher& goal_pose_pub){
             ros::spinOnce();
         }
         // 创建服务请求
-        iusc_maze::map2local_server srv;
+        iusc_maze::map2local srv;
         srv.request.x_map = target_pose[0];
-        srv.request.y_map = target_pose[1]
+        srv.request.y_map = target_pose[1];
         //发送服务请求
         /*   if (map2local_client.call(srv)){
                 if (srv.response.success) {
@@ -275,9 +276,9 @@ void impossible_mission(ros::NodeHandle& nh,ros::Publisher& goal_pose_pub){
                 ROS_ERROR("Failed to call service.");
              }
         */
-        while (ros::ok() && !(map2local_client.call(srv) && srv.response.success) )
+        while (ros::ok() && !(map2local_client.call(srv)) )
         {
-            ROS_ERROR("Failed to call service.")
+            ROS_ERROR("Failed to call service.");
             rate.sleep();
             ros::spinOnce();
         }
@@ -389,7 +390,7 @@ int main(int argc,char **argv){
             target_pose[2] = nh.param("/target_pos_z",.0);
        
        // 坐标转换
-        ros::ServiceClient map2local_client = nh.serviceClient<iusc_maze::map2local_server>("/map2local_server");// 请替换为实际的服务名称
+        ros::ServiceClient map2local_client = nh.serviceClient<iusc_maze::map2local>("/map2local_server");
         // 等待服务可用
         /*
         if (!map2local_client.waitForExistence()) {
@@ -403,9 +404,9 @@ int main(int argc,char **argv){
             ros::spinOnce();
         }
         // 创建服务请求
-        iusc_maze::map2local_server srv;
+        iusc_maze::map2local srv;
         srv.request.x_map = target_pose[0];
-        srv.request.y_map = target_pose[1]
+        srv.request.y_map = target_pose[1];
         //发送服务请求
         /*   if (map2local_client.call(srv)){
                 if (srv.response.success) {
@@ -429,9 +430,9 @@ int main(int argc,char **argv){
                 ROS_ERROR("Failed to call service.");
              }
         */
-        while (ros::ok() && !(map2local_client.call(srv) && srv.response.success) )
+        while (ros::ok() && !(map2local_client.call(srv)) )
         {
-            ROS_ERROR("Failed to call service.")
+            ROS_ERROR("Failed to call service.");
             rate.sleep();
             ros::spinOnce();
         }
@@ -445,23 +446,24 @@ int main(int argc,char **argv){
         dsr_pose.pose.position.y = srv.response.y_local;
         dsr_pose.pose.position.z = target_pose[2];
         waypoint_pub.publish(dsr_pose);
-            std::cout << "set way point after rect success!" << std::endl;
-        }
+        std::cout << "set way point after rect success!" << std::endl;
+            // wait for cross rect
+        //ros::Subscriber drone_state_sub = nh.subscribe("/prometheus/drone_state",10,drone_state_cb);
+        ros::Subscriber drone_state_sub = nh.subscribe("/mavros/local_position/pose",10,drone_state_cb);
+        while(ros::ok()){
+            float distance = distance_3f(dsr_pose,drone_state) ;
+            std::cout << " --- distance to way point  : " << distance << std::endl;
+            if ( distance < 0.2 ) break;
+            rate_1.sleep();
+            ros::spinOnce();
+    }
+    drone_state_sub.shutdown(); // shutdown subscriber
+    }
         else{
             ROS_ERROR("wrong uav unmber!");
         }
     } else ROS_ERROR("param set error before rect");
 
-    // wait for cross rect
-    //ros::Subscriber drone_state_sub = nh.subscribe("/prometheus/drone_state",10,drone_state_cb);
-    ros::Subscriber drone_state_sub = nh.subscribe("/mavros/local_position/pose",10,drone_state_cb);
-    while(ros::ok()){
-        float distance = distance_3f(dsr_pose,drone_state) ;
-        std::cout << " --- distance to way point  : " << distance << std::endl;
-        if ( distance_3f(drs_pose,drone_state) < 0.2 ) break;
-        rate_1.sleep();
-        ros::spinOnce();
-    }
-    drone_state_sub.shutdown(); // shutdown subscriber
+
     impossible_mission(nh,goal_pose_pub);
 }

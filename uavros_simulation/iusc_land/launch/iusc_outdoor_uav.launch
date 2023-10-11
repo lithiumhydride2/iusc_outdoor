@@ -60,7 +60,7 @@
         <!-- 加载策略控制器 -->
         <!-- <node pkg="iusc_land" type="land_strategy.py" name="land_strategy" output="screen" args="$(arg uav_id_1)">
         </node> -->
-        <node pkg="iusc_land" type="fake_promethus.py" name="fake_promethus" output="screen" args="$(arg uav_id_1)"/>
+        <!-- <node pkg="iusc_land" type="fake_promethus.py" name="fake_promethus" output="screen" args="$(arg uav_id_1)"/> -->
     </group>
 
    
