@@ -60,7 +60,7 @@
         <node pkg="iusc_land" type="fake_promethus.py" name="fake_promethus" output="screen" args="$(arg uav_id_1)"/>
     </group>
 
-    加载无人机2
+    <!-- 加载无人机2 -->
     <group ns = "uav2">
         <arg name="uav_id_2" value="2"/>  
         <!-- px4 sitl and vehicle -->

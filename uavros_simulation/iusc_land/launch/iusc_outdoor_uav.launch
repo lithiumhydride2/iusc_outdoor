@@ -54,14 +54,17 @@
         <!-- 加载坐标变换 -->
         <!-- <node pkg="iusc_land" type="custom_tf.py" name="custom_tf" output="screen" args="$(arg uav_id_1)"/> -->
         <node pkg="node_sequence" type="node_sequence.py" name="iusc_node_sequence" output="screen" args="$(arg uav_id_1)"/>
+        <!-- iusc_maze 参数 -->
+        <param name="uav_id" type="int" value="$(eval arg('uav_id_1') - 1)"/>
         <!-- 加载坐标变换服务 -->
         <rosparam command="load" file="$(find iusc_maze)/cfg/GPS_LALO.yaml"/>
         <node pkg="iusc_maze" type="map2local_server" name="map2local_server" output="screen"/>
         <!-- 加载策略控制器 -->
         <!-- <node pkg="iusc_land" type="land_strategy.py" name="land_strategy" output="screen" args="$(arg uav_id_1)">
         </node> -->
-        <!-- <node pkg="iusc_land" type="fake_promethus.py" name="fake_promethus" output="screen" args="$(arg uav_id_1)"/> -->
+        <node pkg="iusc_land" type="fake_promethus.py" name="fake_promethus" output="screen" args="$(arg uav_id_1)"/>
     </group>
 
+    
    
 </launch>
