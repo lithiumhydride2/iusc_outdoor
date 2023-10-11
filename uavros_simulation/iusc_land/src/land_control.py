@@ -29,7 +29,7 @@ class LandControl:
         parser = argparse.ArgumentParser(description="iusc out door land")
 
         # command you could choice:
-        commands = ["arm", "disarm", "takeoff", "offboard"]
+        commands = ["arm", "disarm", "takeoff", "offboard", "land"]
         parser.add_argument("uav_id", type=int, default=None, help="id")
         parser.add_argument("command", choices=commands, help="command ")
         args = parser.parse_args()
@@ -93,11 +93,23 @@ class LandControl:
                 uav_id=int(args.uav_id),
             )
 
+        elif args.command == "disarm":
+            pass
+
+        elif args.command == "land":
+            self.call_service("mavros/cmd/land",
+                              service_class=CommandTOL,
+                              requst=CommandTOLRequest(),
+                              uav_id=int(args.uav_id))
+
     def loginfo(self, *args, **kwargs):
         print("Land Control: ", *args, **kwargs)
 
     def logerr(self, *args, **kwargs):
         print("Land Control:", *args, file=sys.stderr, **kwargs)
+
+    def _arg_uav_on_ground(self):
+        
 
     def call_service(self, name, service_class, requst=None, uav_id=-1, function=None):
         # call function and return on Fasle
