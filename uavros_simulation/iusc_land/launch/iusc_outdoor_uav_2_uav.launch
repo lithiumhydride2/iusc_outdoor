@@ -59,7 +59,7 @@
         <!-- 加载坐标变换服务 -->
         <rosparam command="load" file="$(find iusc_maze)/cfg/GPS_LALO.yaml"/>
         <node pkg="iusc_land" type="fake_promethus.py" name="fake_promethus" output="screen" args="$(arg uav_id_1)"/>
-        <node pkg="iusc_maze" type="map2local_server" name="map2local_server" output="screen" args="$(arg uav_id_1)"/>
+        <!-- <node pkg="iusc_maze" type="map2local_server" name="map2local_server" output="screen" args="$(arg uav_id_1)"/> -->
     </group>
 
     <!-- 加载无人机2 -->
@@ -95,44 +95,8 @@
         <param name="uav_id" type="int" value="$(eval arg('uav_id_2') - 1)"/>
         <!-- 加载坐标变换服务 -->
         <rosparam command="load" file="$(find iusc_maze)/cfg/GPS_LALO.yaml"/>
-        <node pkg="iusc_maze" type="map2local_server" name="map2local_server" output="screen" args="$(arg uav_id_2)"/>
+        <!-- <node pkg="iusc_maze" type="map2local_server" name="map2local_server" output="screen" args="$(arg uav_id_2)"/> -->
         <node pkg="iusc_land" type="fake_promethus.py" name="fake_promethus" output="screen" args="$(arg uav_id_2)"/>
     </group>
-<!-- 加载无人机1 -->
-<arg name="uav_id_3" value="3"/>  
-<group ns = "uav$(arg uav_id_3)">
-    <!-- 加载航点 -->
-    <rosparam command="load" file="$(find iusc_land)/config/way_point.yaml"/>
-    <rosparam command="load" file="$(find iusc_land)/config/way_point_land.yaml"/>
-    <!-- px4 sitl and vehicle -->
-    <include file="$(find uavros_gazebo)/launch/single_iris_usbcam_down.launch">
-        <arg name="x" value="$(arg init_x_3)"/>
-        <arg name="y" value="$(arg init_y_3)"/>
-        <arg name="z" value="0"/>
-        <arg name="R" value="0"/>
-        <arg name="P" value="0"/>
-        <arg name="Y" value="1.570796"/>
-        <arg name="sdf" value="$(arg sdf)"/>
-        <arg name="ID" value="$(arg uav_id_3)"/>
-        <arg name="camNamespace" value="uav$(arg uav_id_3)"/>
-        <arg name="mavlink_udp_port" value="$(eval 14560 + arg('uav_id_3'))"/>
-        <arg name="mavlink_tcp_port" value="$(eval 4560 + arg('uav_id_3'))"/>
-    </include>
-    <!-- 加载mavros -->
-    <include file="$(find mavros)/launch/px4.launch">
-        <arg name="fcu_url" value="$(arg fcu_url)"/>
-        <arg name="gcs_url" value=""/>
-        <arg name="tgt_system" value="$(eval 1 + arg('uav_id_3'))"/>
-        <arg name="tgt_component" value="1"/>
-        <arg name="respawn_mavros" value="false"/>
-    </include>
-    <node pkg="node_sequence" type="node_sequence.py" name="iusc_node_sequence" output="screen" args="$(arg uav_id_3)"/>
-    <!-- iusc_maze 参数 -->
-    <param name="uav_id" type="int" value="$(eval arg('uav_id_3') - 1)"/>
-    <!-- 加载坐标变换服务 -->
-    <rosparam command="load" file="$(find iusc_maze)/cfg/GPS_LALO.yaml"/>
-    <node pkg="iusc_maze" type="map2local_server" name="map2local_server" output="screen" args="$(arg uav_id_3)"/>
-    <node pkg="iusc_land" type="fake_promethus.py" name="fake_promethus" output="screen" args="$(arg uav_id_3)"/>
-</group>
 
 </launch>

@@ -9,7 +9,7 @@ from mavros_msgs.msg import PositionTarget
 class FakePromethus:
     def __init__(self) -> None:
         # under uav{} namespace
-        rospy.init_node("fake_promethus", argv=sys.argv)
+        rospy.init_node("fake_promethus", argv=sys.argv, anonymous=True)
         args = rospy.myargv(argv=sys.argv)
         assert len(args) >= 2, "args not enough"
         self.uav_id = int(args[1])

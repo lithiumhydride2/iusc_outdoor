@@ -58,7 +58,7 @@
         <param name="uav_id" type="int" value="$(eval arg('uav_id_1') - 1)"/>
         <!-- 加载坐标变换服务 -->
         <rosparam command="load" file="$(find iusc_maze)/cfg/GPS_LALO.yaml"/>
-        <node pkg="iusc_maze" type="map2local_server" name="map2local_server" output="screen"/>
+        <node pkg="iusc_maze" type="map2local_server" name="map2local_server" output="screen" args="$(arg uav_id_1)"/>
         <node pkg="iusc_land" type="fake_promethus.py" name="fake_promethus" output="screen" args="$(arg uav_id_1)"/>
     </group>
 

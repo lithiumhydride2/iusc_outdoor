@@ -15,7 +15,7 @@ from std_msgs.msg import Int8
 
 class LandStrategy:
     def __init__(self) -> None:
-        rospy.init_node("land_strategy", argv=sys.argv)
+        rospy.init_node("land_strategy", argv=sys.argv,anonymous=True)
         args = rospy.myargv(argv=sys.argv)
         assert len(args) >= 2, "args not enough"
         self.uav_id = int(args[1])

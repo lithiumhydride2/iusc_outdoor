@@ -22,7 +22,7 @@ from rosgraph import masterapi
 
 class LandControl:
     def __init__(self) -> None:
-        rospy.init_node("land_control", argv=sys.argv)
+        rospy.init_node("land_control", argv=sys.argv, anonymous=True)
         self.timeout = 1.0
 
     def run(self):
