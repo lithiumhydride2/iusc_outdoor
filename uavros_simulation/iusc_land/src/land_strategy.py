@@ -63,8 +63,8 @@ class LandStrategy:
             # track way point
             self.follow_way_point()
             # 获取降落队形
-            self.land_shape_pub = rospy.Publisher("land_shape",data_class=,latch=True)
-            
+            # self.land_shape_pub = rospy.Publisher("land_shape",data_class=,latch=True)
+
             pass
         elif self.uav_id > 1 and self.uav_id <= 6:
             self.follow_way_point()
