@@ -1,14 +1,50 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
+
 import rospy
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge
-import cv2
+from std_msgs.msg import String
 import numpy as np
+import sys
+from colorama import Fore, Style
+import cv2
 
 
-def image_callback(msg):
-    try:
+class FormationDetect:
+    def __init__(self) -> None:
+        rospy.init_node("formation_detect", anonymous=True, argv=sys.argv)
+        self.uav_id = int(sys.argv[1])
+        if self.uav_id > 1:
+            rospy.loginfo(
+                Fore.LIGHTRED_EX
+                + "this uav do not need formation detect"
+                + Style.BRIGHT
+            )
+        # your own image topic name:
+        topic_name = "/uav{}/usb_cam/image_raw".format(self.uav_id)
+        self.image_cb_counts = 3  # 控制回调函数被调用次数
+        self.board_colors = []
+        for _ in range(self.image_cb_counts):
+            image_msg = rospy.wait_for_message(topic_name, Image)
+            self.image_callback(image_msg)  # update board colors
+            self.rate1 = rospy.Rate(1.0)
+        # error
+        if self.board_colors is None:
+            rospy.logerror(" can not get land formation, manual land !!!!")
+        # 进行数据整理
+        formation_str = ""
+        for row in self.board_colors:
+            formation_str += "".join(row)
+        formation_pub = rospy.Publisher(
+            "/uav{}/formation_str".format(self.uav_id),
+            String,
+            latch=True,
+            queue_size=10,
+        )
+        for _ in range(5):
+            formation_pub.publish(formation_str)
+
+    def image_callback(self, msg: Image):
         bridge = CvBridge()
         # 将ROS图像消息转换为OpenCV图像
         image = bridge.imgmsg_to_cv2(msg, desired_encoding="bgr8")
@@ -30,10 +66,11 @@ def image_callback(msg):
         mask_green_board = cv2.inRange(image_hsv, lower_green, upper_green)
 
         # 在掩码中找到红色和绿色物体的轮廓
-        _, contours_red_board, _ = cv2.findContours(
+        # 此处可能是 opencv 版本不同 ？ 实验室电脑上 opencv 此函数仅有两个 返回值
+        contours_red_board, _ = cv2.findContours(
             mask_red_board, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE
         )
-        _, contours_green_board, _ = cv2.findContours(
+        contours_green_board, _ = cv2.findContours(
             mask_green_board, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE
         )
 
@@ -81,9 +118,9 @@ def image_callback(msg):
 
                 # 根据像素数确定颜色
                 if red_pixels > green_pixels:
-                    row_colors.append("Red")
+                    row_colors.append("R")
                 else:
-                    row_colors.append("Green")
+                    row_colors.append("G")
 
             board_colors.append(row_colors)
 
@@ -93,15 +130,16 @@ def image_callback(msg):
         for row in board_colors:
             print(row)
 
-        print("\n")
+        print(1)
 
-    except Exception as e:
-        rospy.logerr(e)
+        self.board_colors = board_colors
+
+    # except Exception as e:
+    #     rospy.logerr(e)
 
 
 def main():
-    rospy.init_node("image_subscriber", anonymous=True)
-    rospy.Subscriber("image_topic", Image, image_callback)
+    formation_detect = FormationDetect()
     rospy.spin()
 
 

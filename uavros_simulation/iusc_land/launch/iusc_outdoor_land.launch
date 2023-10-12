@@ -10,8 +10,7 @@
     </include>
 
     <!-- 加载无人机 -->
-    <include file="$(find iusc_land)/launch/iusc_outdoor_uav.launch">
-        <arg name="n" value="$(arg num_uav)"/>
+    <include file="$(find iusc_land)/launch/iusc_outdoor_uav_3_uav.launch">
     </include>
     
 </launch>

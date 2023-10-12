@@ -97,10 +97,12 @@ class LandControl:
             pass
 
         elif args.command == "land":
-            self.call_service("mavros/cmd/land",
-                              service_class=CommandTOL,
-                              requst=CommandTOLRequest(),
-                              uav_id=int(args.uav_id))
+            self.call_service(
+                "mavros/cmd/land",
+                service_class=CommandTOL,
+                requst=CommandTOLRequest(),
+                uav_id=int(args.uav_id),
+            )
 
     def loginfo(self, *args, **kwargs):
         print("Land Control: ", *args, **kwargs)
@@ -109,7 +111,7 @@ class LandControl:
         print("Land Control:", *args, file=sys.stderr, **kwargs)
 
     def _arg_uav_on_ground(self):
-        
+        pass
 
     def call_service(self, name, service_class, requst=None, uav_id=-1, function=None):
         # call function and return on Fasle

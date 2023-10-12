@@ -11,7 +11,7 @@
     <arg name="init_y" default="0"/>
     <!-- 六架无人机初始位置 -->
     <arg name="init_x_1" default="$(eval 30 - 22.5)"/>
-    <arg name="init_y_1" default="-1.0"/>
+    <arg name="init_y_1" default="65"/>
     <arg name="init_x_2" default="$(eval 30 - 15.0)"/>
     <arg name="init_y_2" default="-1.0"/>
     <arg name="init_x_3" default="$(eval 30 - 7.5)"/>
@@ -23,12 +23,14 @@
     <arg name="init_x_6" default="$(eval 30 - 7.5)"/>
     <arg name="init_y_6" default="-3.0"/>
 
-    <!-- 加载航点 -->
-    <rosparam command="load" file="$(find iusc_land)/config/way_point.yaml"/>
+
 
     <!-- 加载无人机1 -->
-    <group ns = "uav1">
-        <arg name="uav_id_1" value="1"/>  
+    <arg name="uav_id_1" value="1"/>  
+    <group ns = "uav$(arg uav_id_1)">
+        <!-- 加载航点 -->
+        <rosparam command="load" file="$(find iusc_land)/config/way_point.yaml"/>
+        <rosparam command="load" file="$(find iusc_land)/config/way_point_land.yaml"/>
         <!-- px4 sitl and vehicle -->
         <include file="$(find uavros_gazebo)/launch/single_iris_usbcam_down.launch">
             <arg name="x" value="$(arg init_x_1)"/>
@@ -51,17 +53,12 @@
             <arg name="tgt_component" value="1"/>
             <arg name="respawn_mavros" value="false"/>
         </include>
-        <!-- 加载坐标变换 -->
-        <!-- <node pkg="iusc_land" type="custom_tf.py" name="custom_tf" output="screen" args="$(arg uav_id_1)"/> -->
         <node pkg="node_sequence" type="node_sequence.py" name="iusc_node_sequence" output="screen" args="$(arg uav_id_1)"/>
         <!-- iusc_maze 参数 -->
         <param name="uav_id" type="int" value="$(eval arg('uav_id_1') - 1)"/>
         <!-- 加载坐标变换服务 -->
         <rosparam command="load" file="$(find iusc_maze)/cfg/GPS_LALO.yaml"/>
         <node pkg="iusc_maze" type="map2local_server" name="map2local_server" output="screen"/>
-        <!-- 加载策略控制器 -->
-        <!-- <node pkg="iusc_land" type="land_strategy.py" name="land_strategy" output="screen" args="$(arg uav_id_1)">
-        </node> -->
         <node pkg="iusc_land" type="fake_promethus.py" name="fake_promethus" output="screen" args="$(arg uav_id_1)"/>
     </group>
 

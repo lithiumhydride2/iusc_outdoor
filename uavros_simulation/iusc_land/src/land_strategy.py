@@ -1,12 +1,16 @@
 #!/usr/bin/env python
 import sys
 import rospy
+import subprocess
 from mavros_msgs.msg import State
 from geometry_msgs.msg import PoseStamped
 from geographic_msgs.msg import GeoPoseStamped
 from colorama import Fore, Style
 from sensor_msgs.msg import NavSatFix
 from iusc_maze.srv import map2localRequest, map2localResponse, map2local
+from std_msgs.msg import String
+from collections import defaultdict
+from std_msgs.msg import Int8
 
 
 class LandStrategy:
@@ -50,7 +54,7 @@ class LandStrategy:
         rospy.wait_for_message("mavros/state", State)
         while not rospy.is_shutdown():
             self.rate1.sleep()
-            rospy.loginfo(" uav{} wait for OFFBOARD".format(self.uav_id))
+            rospy.loginfo_once(" uav{} wait for OFFBOARD".format(self.uav_id))
             if self.state.mode == "OFFBOARD":
                 rospy.loginfo_once(
                     Fore.GREEN
@@ -61,21 +65,91 @@ class LandStrategy:
 
         if self.uav_id == 1:
             # track way point
+            template = rospy.resolve_name("uav{}_way_point")
+            self.way_points = rospy.get_param(template.format(self.uav_id))
             self.follow_way_point()
-            # 获取降落队形
-            # self.land_shape_pub = rospy.Publisher("land_shape",data_class=,latch=True)
+            # 此处应该等待 5 秒使无人机稳定，图像稳定
+            rospy.sleep(5.0)
+            subprocess.Popen(
+                ["rosrun", "iusc_land", "formation_detect.py", str(self.uav_id)]
+            )
+            # 等待 formation str 信息
+            formation_str: String = rospy.wait_for_message(
+                "/uav{}/formation_str".format(self.uav_id), String
+            )
+            formation_str = str(formation_str.data)
+            self.loginfo("formation_detect is : ", formation_str)
+            assert len(formation_str) == 16, "wrong formation str"
+            # store it in dict
+            formation_dict = defaultdict(list)
+            for index, item in enumerate(formation_str):
+                formation_dict[item].append(index)
+            # 如果出于某种原因，绿色降落点数量不为6，将其补全为6,从 formation_dict["R"] 中随机抽取
+            if len(formation_dict["G"]) > 6:
+                formation_dict["G"] = formation_dict["G"][:6]
+            elif len(formation_dict["G"]) < 6:
+                missing_count = 6 - len(formation_dict["G"])
+                avaliable_indices = formation_dict["R"][:missing_count]
+                formation_dict["G"].extend(avaliable_indices)
+            # 现在可以发布 ， 当前简单的使用顺序发布，你可以采取自己的策略
+            rospy.loginfo(formation_dict["G"])
+            self.land_pos_index = formation_dict["G"]
 
+            ################ 发布目标降落索引 #################################
+            self.pub_land_pos_index()
+            self.loginfo("land position index publish !")
+            # follow land way point
+            self.follow_land_way_point()
             pass
         elif self.uav_id > 1 and self.uav_id <= 6:
+            template = rospy.resolve_name("uav{}_way_point")
+            self.way_points = rospy.get_param(template.format(self.uav_id))
             self.follow_way_point()
+            # follow land way point
+            self.follow_land_way_point()
+            # 
             pass
 
-    def follow_way_point(self):
-        template = "/uav{}_way_point"
-        self.way_points = rospy.get_param(template.format(self.uav_id))
-        num_way_points = len(self.way_points)
-        assert num_way_points > 1, "way points not enough"
+    def follow_land_way_point(self):
+        template = rospy.resolve_name("land_way_point")
+        land_way_points = rospy.get_param(template)
+        template = "/uav1/uav{}/land_index".format(self.uav_id)
 
+        land_points_index = rospy.wait_for_message(template, Int8)
+        self.loginfo(
+            " uav{} get land index :".format(self.uav_id), land_points_index.data
+        )
+        self.way_points = land_way_points[land_points_index.data]
+        print(self.way_points, land_way_points)
+        self.follow_way_point()
+        pass
+
+    def pub_land_pos_index(self):
+        pass
+        # uav1 控制 uav2 至 uav6
+        index_publishers = [
+            rospy.Publisher(
+                "/uav{}/uav{}/land_index".format(self.uav_id, uav_number),
+                Int8,
+                latch=True,
+                queue_size=10,
+            )
+            for uav_number in range(1, 7)
+        ]
+
+        for _ in range(5):
+            for index, index_pub in enumerate(index_publishers):
+                # 根据 index 索引目标降落位置
+                index_pub.publish(self.land_pos_index[index])
+            self.rate1.sleep()
+
+    def follow_way_point(self):
+        """
+        get parameters from the topic : "/uav{}_way_point" and follow it!
+        """
+        # num_way_points = len(self.way_points)
+        if type(self.way_points[0]) != list:
+            self.way_points = [self.way_points]
         for way_point in self.way_points:
             way_point_in_local_axis = self.way_point_to_local_axis(way_point)
             self.set_way_point(way_point_in_local_axis)
