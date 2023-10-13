@@ -268,14 +268,12 @@ void cross_the_room(ros::NodeHandle& nh,ros::Publisher& goal_pose_pub){
             }
     } else ROS_ERROR("param set error before rect");
 
-
-    iusc_swarm_strategy::iusc_swarm room_arrange_success_msg;
-    room_arrange_success_msg.uav_number = uav_number;
-    room_arrange_success_msg.room_arrange_success = true;
-    ros::Publisher room_arrange_pub = nh.advertise<iusc_swarm_strategy::iusc_swarm>("/able_to_take_off",10 ,true);
+    std_msgs::String task2_status;
+    task2_status = "task 2 done";
+    ros::Publisher task2_status_msg = nh.advertise<std_msgs::String>("/Task2Done",10 ,true);
     for(int i = 0 ;i < 3 ; i++)
     {
-        room_arrange_pub.publish(room_arrange_success_msg);
+        room_arrange_pub.publish(task2_status_msg);
         rate_1.sleep();
         ros::spinOnce();
     }
