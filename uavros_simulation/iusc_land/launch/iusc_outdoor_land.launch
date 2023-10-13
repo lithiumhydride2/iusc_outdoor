@@ -2,7 +2,7 @@
 <launch>
     <arg name="world_path" default="$(find iusc_land)/worlds/scene.world"/>
     <arg name="vehicle" default="iris"/>
-    <arg name="num_uav" default='6'/>
+    <arg name="num_uav" default='2'/>
 
     <!-- 加载地图 -->
     <include file="$(find iusc_land)/launch/iusc_outdoor_world.launch">
@@ -10,7 +10,7 @@
     </include>
 
     <!-- 加载无人机 -->
-    <include file="$(find iusc_land)/launch/iusc_outdoor_uav_2_uav.launch">
+    <include file="$(find iusc_land)/launch/iusc_outdoor_uav_$(arg num_uav)_uav.launch">
     </include>
     
 </launch>

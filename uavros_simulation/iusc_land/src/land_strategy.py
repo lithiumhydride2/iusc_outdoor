@@ -15,7 +15,8 @@ from std_msgs.msg import Int8
 
 class LandStrategy:
     def __init__(self) -> None:
-        rospy.init_node("land_strategy", argv=sys.argv,anonymous=True)
+        rospy.init_node("land_strategy", argv=sys.argv, anonymous=True)
+
         args = rospy.myargv(argv=sys.argv)
         assert len(args) >= 2, "args not enough"
         self.uav_id = int(args[1])
@@ -44,7 +45,6 @@ class LandStrategy:
         self.map2local_client = rospy.ServiceProxy(
             templete.format(self.uav_id), map2local
         )
-        self.map2local_client.wait_for_service()
         # wait for px4
         rospy.wait_for_service("/uav{}/mavros/get_loggers".format(self.uav_id), 5)
         self.loginfo(" uav{} land strategy init done!".format(self.uav_id))
@@ -107,7 +107,7 @@ class LandStrategy:
             self.follow_way_point()
             # follow land way point
             self.follow_land_way_point()
-            # 
+            #
             pass
 
     def follow_land_way_point(self):
@@ -198,6 +198,7 @@ class LandStrategy:
         request = map2localRequest()
         request.x_map = way_point[0]
         request.y_map = way_point[1]
+        self.map2local_client.wait_for_service(5.0)
         response: map2localResponse = self.map2local_client.call(request)
         return [response.x_local, response.y_local, way_point[2]]
 
@@ -228,14 +229,10 @@ class LandStrategy:
 def main():
     # try:
     land_strategy_node = LandStrategy()
-    try:
-        land_strategy_node.run()
-        rospy.spin()
-    except rospy.ROSInterruptException as e:
-        rospy.logerr(e)
+    # try:
+    land_strategy_node.run()
     # except rospy.ROSInterruptException as e:
-    # print("error in land strategy")
-    # rospy.logerror(e)
+    #     rospy.logerr(e)
 
 
 if __name__ == "__main__":
