@@ -3,4 +3,16 @@ uav1_way_point:
   - [75. , 15. ,7. ]
 
 uav2_way_point:
-  - [0. , 0. , 3. ]
+  - [83. , 10. , 3. ]
+
+uav3_way_point:
+  - [83, 13., 3.]
+
+uav4_way_point:
+  - [80, 10., 3.]
+
+uav5_way_point:
+  - [80, 13., 3.]
+
+uav6_way_point:
+  - [80, 16., 3.]

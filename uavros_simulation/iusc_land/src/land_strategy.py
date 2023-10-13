@@ -101,6 +101,7 @@ class LandStrategy:
             # follow land way point
             self.follow_land_way_point()
             pass
+
         elif self.uav_id > 1 and self.uav_id <= 6:
             template = rospy.resolve_name("uav{}_way_point")
             self.way_points = rospy.get_param(template.format(self.uav_id))
@@ -148,6 +149,9 @@ class LandStrategy:
         get parameters from the topic : "/uav{}_way_point" and follow it!
         """
         # num_way_points = len(self.way_points)
+        if not self.way_points:
+            self.logerr("No way points")
+            return
         if type(self.way_points[0]) != list:
             self.way_points = [self.way_points]
         for way_point in self.way_points:
