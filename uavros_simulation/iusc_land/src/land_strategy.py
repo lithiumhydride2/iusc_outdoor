@@ -91,7 +91,7 @@ class LandStrategy:
                 missing_count = 6 - len(formation_dict["G"])
                 avaliable_indices = formation_dict["R"][:missing_count]
                 formation_dict["G"].extend(avaliable_indices)
-            # 现在可以发布 ， 当前简单的使用顺序发布，你可以采取自己的策略
+            # 现在可以发布 ， 当前简单的使用顺序发布目标降落位置，你可以采取自己的策略
             rospy.loginfo(formation_dict["G"])
             self.land_pos_index = formation_dict["G"]
 

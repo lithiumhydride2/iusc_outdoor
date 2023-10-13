@@ -95,6 +95,12 @@ class LandControl:
 
         elif args.command == "disarm":
             pass
+            self.call_service(
+                "mavros/cmd/arming",
+                service_class=CommandBool,
+                requst=CommandBoolRequest(False),
+                uav_id=int(args.uav_id),
+            )
 
         elif args.command == "land":
             self.call_service(
