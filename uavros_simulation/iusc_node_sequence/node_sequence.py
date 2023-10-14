@@ -31,7 +31,12 @@ if __name__ == "__main__":
     uav_id = sys.argv[1]
     #  直接开始 stage3
     subprocess.Popen(
-        ["roslaunch", "iusc_land", "iusc_outdoor_stage3.launch", "num_uav:=1"]
+        [
+            "roslaunch",
+            "iusc_land",
+            "iusc_outdoor_stage3.launch",
+            "uav_id:={}".format(uav_id),
+        ]
     )
     # stage1
     # subprocess.Popen(["roslaunch", "iusc_maze", "iusc_maze_swarm.launch"])

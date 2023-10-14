@@ -2,7 +2,7 @@
 import sys
 import rospy
 import subprocess
-from mavros_msgs.msg import State
+from mavros_msgs.msg import State, PositionTarget
 from geometry_msgs.msg import PoseStamped
 from geographic_msgs.msg import GeoPoseStamped
 from colorama import Fore, Style
@@ -11,11 +11,15 @@ from iusc_maze.srv import map2localRequest, map2localResponse, map2local
 from std_msgs.msg import String
 from collections import defaultdict
 from std_msgs.msg import Int8
+import math
 
+velocity = 4.0  # 设置速度，单位可以是米/秒
+len_yaw = None
 
 class LandStrategy:
     def __init__(self) -> None:
-        rospy.init_node("land_strategy", argv=sys.argv)
+        rospy.init_node("land_strategy", argv=sys.argv, anonymous=True)
+
         args = rospy.myargv(argv=sys.argv)
         assert len(args) >= 2, "args not enough"
         self.uav_id = int(args[1])
@@ -37,14 +41,13 @@ class LandStrategy:
         #     "mavros/setpoint_position/global", GeoPoseStamped, queue_size=10
         # )
         self.local_pos_pub = rospy.Publisher(
-            "mavros/setpoint_position/local", PoseStamped, queue_size=10
+            "mavros/setpoint_raw/local", PoseStamped, queue_size=10
         )
         # wait for map2local service
         templete = "/uav{}/map2local_server"
         self.map2local_client = rospy.ServiceProxy(
             templete.format(self.uav_id), map2local
         )
-        self.map2local_client.wait_for_service()
         # wait for px4
         rospy.wait_for_service("/uav{}/mavros/get_loggers".format(self.uav_id), 5)
         self.loginfo(" uav{} land strategy init done!".format(self.uav_id))
@@ -91,7 +94,7 @@ class LandStrategy:
                 missing_count = 6 - len(formation_dict["G"])
                 avaliable_indices = formation_dict["R"][:missing_count]
                 formation_dict["G"].extend(avaliable_indices)
-            # 现在可以发布 ， 当前简单的使用顺序发布，你可以采取自己的策略
+            # 现在可以发布 ， 当前简单的使用顺序发布目标降落位置，你可以采取自己的策略
             rospy.loginfo(formation_dict["G"])
             self.land_pos_index = formation_dict["G"]
 
@@ -101,13 +104,14 @@ class LandStrategy:
             # follow land way point
             self.follow_land_way_point()
             pass
-        elif self.uav_id > 1 and self.uav_id <= 6:
+
+        elif self.uav_id > 1 and self.uav_id <= 3:
             template = rospy.resolve_name("uav{}_way_point")
             self.way_points = rospy.get_param(template.format(self.uav_id))
             self.follow_way_point()
             # follow land way point
             self.follow_land_way_point()
-            # 
+            #
             pass
 
     def follow_land_way_point(self):
@@ -148,9 +152,35 @@ class LandStrategy:
         get parameters from the topic : "/uav{}_way_point" and follow it!
         """
         # num_way_points = len(self.way_points)
+        if not self.way_points:
+            self.logerr("No way points")
+            return
         if type(self.way_points[0]) != list:
             self.way_points = [self.way_points]
-        for way_point in self.way_points:
+        # 设置速度和航点之间的最小距离
+        min_distance = velocity  # 假设速度为1.0米/秒，最小距离也为1.0米
+
+        # 生成新的路径点序列
+        new_waypoints = []
+
+        for i in range(len(self.way_points) - 1):
+            start_point = self.way_points[i]
+            end_point = self.way_points[i + 1]
+
+            # 计算路径点之间的总距离
+            total_distance = distance(start_point, end_point)
+
+            # 计算需要的航点数量
+            num_waypoints = int(total_distance / min_distance) + 1  # 加1是为了包括起点和终点
+
+            for j in range(num_waypoints):
+                alpha = float(j) / (num_waypoints - 1)  # 在0到1之间线性插值
+                x = start_point[0] + alpha * (end_point[0] - start_point[0])
+                y = start_point[1] + alpha * (end_point[1] - start_point[1])
+                z = start_point[2] + alpha * (end_point[2] - start_point[2])
+                new_waypoints.append([x, y, z])
+
+        for way_point in new_waypoints:
             way_point_in_local_axis = self.way_point_to_local_axis(way_point)
             self.set_way_point(way_point_in_local_axis)
             self.wait_for_approach(way_point_in_local_axis)
@@ -175,10 +205,14 @@ class LandStrategy:
         self.loginfo(" uav{} approach one way point".format(self.uav_id))
 
     def set_way_point(self, way_point: list):
-        temp = PoseStamped()
-        temp.pose.position.x = way_point[0]
-        temp.pose.position.y = way_point[1]
-        temp.pose.position.z = way_point[2]
+        temp = PositionTarget()
+        temp.frame_id = "map"
+        temp.coordinate_frame = 1
+        temp.type_mask = 0b101111111000
+        temp.position.x = way_point[0]
+        temp.position.y = way_point[1]
+        temp.position.z = way_point[2]
+        temp.yaw = len_yaw
         for _ in range(5):
             self.local_pos_pub.publish(temp)
             self.rate30.sleep()
@@ -198,6 +232,7 @@ class LandStrategy:
         request = map2localRequest()
         request.x_map = way_point[0]
         request.y_map = way_point[1]
+        self.map2local_client.wait_for_service(5.0)
         response: map2localResponse = self.map2local_client.call(request)
         return [response.x_local, response.y_local, way_point[2]]
 
@@ -224,18 +259,20 @@ class LandStrategy:
     def logerr(self, *args, **kwargs):
         print("Land strategy : ", *args, file=sys.stderr, **kwargs)
 
+# 计算两点之间的距离
+def distance(point1, point2):
+    return math.sqrt((point2[0] - point1[0])**2 + (point2[1] - point1[1])**2 + (point2[2] - point1[2])**2)
+
+
+
 
 def main():
     # try:
     land_strategy_node = LandStrategy()
-    try:
-        land_strategy_node.run()
-        rospy.spin()
-    except rospy.ROSInterruptException as e:
-        rospy.logerr(e)
+    # try:
+    land_strategy_node.run()
     # except rospy.ROSInterruptException as e:
-    # print("error in land strategy")
-    # rospy.logerror(e)
+    #     rospy.logerr(e)
 
 
 if __name__ == "__main__":

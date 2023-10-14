@@ -22,7 +22,7 @@ from rosgraph import masterapi
 
 class LandControl:
     def __init__(self) -> None:
-        rospy.init_node("land_control", argv=sys.argv)
+        rospy.init_node("land_control", argv=sys.argv, anonymous=True)
         self.timeout = 1.0
 
     def run(self):
@@ -95,6 +95,12 @@ class LandControl:
 
         elif args.command == "disarm":
             pass
+            self.call_service(
+                "mavros/cmd/arming",
+                service_class=CommandBool,
+                requst=CommandBoolRequest(False),
+                uav_id=int(args.uav_id),
+            )
 
         elif args.command == "land":
             self.call_service(
