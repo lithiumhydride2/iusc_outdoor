@@ -14,7 +14,7 @@ from std_msgs.msg import Int8
 import math
 
 velocity = 4.0  # 设置速度，单位可以是米/秒
-len_yaw = None
+len_yaw = 3.14
 
 class LandStrategy:
     def __init__(self) -> None:
